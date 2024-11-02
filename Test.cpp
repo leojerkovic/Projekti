@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#define MAX 1024
+#include <string.h>
+#define MAX 128
 
 struct stog {
 	char operacija;
@@ -17,6 +18,7 @@ double peekD(static struct stog*);
 int vaznost(char);
 int turntonum(char);
 char turntochar(int);
+char* removeWhiteSpace(char*);
 char* InfixToPostfix(char*);
 double CalculatePostfix(char*);
 
@@ -24,23 +26,12 @@ int main() {
 	char* buffer=NULL;
 	char* pfix = NULL;
 	buffer = (char*)malloc(MAX * sizeof(char));
-	printf("%lf",(double)turntonum('3'));
-	printf("Unesi operaciju: "); scanf("%s", buffer);
-
-	/*int i;
-	for (i = 0; i < 5; i++) {
-		push(&head, i + 3, '\0');
-	}
-	listout(&head);
-	for (i = 0; i < 3; i++) {
-		pop(&head);
-	}
-	printf("\n");
-	listout(&head);*/
+	printf("Unesi operaciju: "); 
+	fgets(buffer, MAX, stdin);
 
 	//ASCII 48 = 0  -  57 = 9
 
-	pfix=InfixToPostfix(buffer); //KAKO OVO RADI LOL WTF
+	pfix = InfixToPostfix(buffer); //Sigma
 	printf("%s\n", pfix);
 	printf("=%lf", CalculatePostfix(pfix));
 
@@ -113,7 +104,45 @@ char turntochar(int n) {
 	return n + 48;
 }
 
+char* removeWhiteSpace(char* buffer) {
+	if (buffer == NULL) {
+		return NULL;
+	}
+	int i = 0;
+	int j;
+	int n=0;
+	while (buffer[i] != '\0') {
+		n++;
+		i++;
+	}
+	n++;
+	i = 0;
+	while (buffer[i] != '\0') {
+		if (buffer[i] == ' '||buffer[i]=='\n') {
+			j = i;
+			while (buffer[j+1] != '\0') {
+				buffer[j] = buffer[j + 1];
+				j++;
+			}
+			buffer[j] = buffer[j+1];
+			n--;
+			buffer = (char*)realloc(buffer,n * sizeof(char));
+			if (buffer == NULL) {
+				return NULL;
+			}
+		}
+		if (buffer[i] == ' ') {
+			continue;
+		}
+		else {
+			i++;
+		}
+	}
+	return buffer;
+}
+
 char* InfixToPostfix(char* buffer) {
+	buffer=removeWhiteSpace(buffer);
 	struct stog* head = NULL;
 	head = (struct stog*)malloc(sizeof(struct stog));
 	if (head == NULL) {
@@ -127,13 +156,21 @@ char* InfixToPostfix(char* buffer) {
 	int i=0,n=0;
 	while (1) {
 		if (buffer[i] >= 48 && buffer[i] <= 57) {
+			while ((buffer[i] >= 48 && buffer[i] <= 57)||buffer[i]=='.') {
+				rBuffer = (char*)realloc(rBuffer, ((n + 1) * sizeof(char)));
+				if (rBuffer == NULL) {
+					return NULL;
+				}
+				rBuffer[n] = buffer[i];
+				n++;
+				i++;
+			}
 			rBuffer = (char*)realloc(rBuffer, ((n + 1) * sizeof(char)));
 			if (rBuffer == NULL) {
 				return NULL;
 			}
-			rBuffer[n] = buffer[i];
+			rBuffer[n] = ' ';
 			n++;
-			i++;
 		}
 		else {
 			if (peekC(head) == '\0') {
@@ -201,8 +238,6 @@ char* InfixToPostfix(char* buffer) {
 	n++;
 	free(head);
 	return rBuffer;
-
-
 }
 
 double CalculatePostfix(char* pfix) {
@@ -216,13 +251,38 @@ double CalculatePostfix(char* pfix) {
 		return EXIT_FAILURE;
 	}
 	int i = 0;
+	double prec=0;
+	double nprec = -1;
 	double temp1;
 	double temp2;
 	double temp3;
 	while (pfix[i] != '\0') {
-		if (pfix[i] >= 48 && pfix[i] <= 57) {
-			push(head, '\0', (double)turntonum(pfix[i]));
+		if ((pfix[i] >= 48 && pfix[i] <= 57)||pfix[i]=='.') {
+			while (pfix[i] != ' ') {
+				if (prec == 0) {
+					prec = (double)turntonum(pfix[i]);
+				}
+				else if (pfix[i]=='.') {
+					i++;
+					if (pfix[i] < 48 || pfix[i]>57) {
+						break;
+					}
+					while (pfix[i] != ' ') {
+						prec = prec + (double)turntonum(pfix[i]) * pow(10, nprec);
+						nprec--;
+						i++;
+					}
+					i--;
+				}
+				else {
+					prec = prec * 10 + (double)turntonum(pfix[i]);
+				}
+				i++;
+			}
 			i++;
+			push(head, '\0', prec);
+			nprec = -1;
+			prec = 0;
 		}
 		else if (pfix[i] == '+') {
 			temp2 = peekD(head);
