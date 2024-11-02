@@ -1,2 +1,2 @@
 # Vjezbanje
-Vjezbanje koncepata
+Sigma ohio grindset fr fr ong
