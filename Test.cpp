@@ -155,7 +155,7 @@ char* InfixToPostfix(char* buffer) {
 	char* rBuffer = NULL;
 	int i=0,n=0;
 	while (1) {
-		if (buffer[i] >= 48 && buffer[i] <= 57) {
+		if ((buffer[i] >= 48 && buffer[i] <= 57)||buffer[i]=='.') {
 			while ((buffer[i] >= 48 && buffer[i] <= 57)||buffer[i]=='.') {
 				rBuffer = (char*)realloc(rBuffer, ((n + 1) * sizeof(char)));
 				if (rBuffer == NULL) {
@@ -259,7 +259,7 @@ double CalculatePostfix(char* pfix) {
 	while (pfix[i] != '\0') {
 		if ((pfix[i] >= 48 && pfix[i] <= 57)||pfix[i]=='.') {
 			while (pfix[i] != ' ') {
-				if (prec == 0) {
+				if (prec == 0 && pfix[i]!='.') {
 					prec = (double)turntonum(pfix[i]);
 				}
 				else if (pfix[i]=='.') {
