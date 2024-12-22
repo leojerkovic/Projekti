@@ -1,2 +1,3 @@
-# Vjezbanje
-Sigma ohio grindset fr fr ong
+# Projekti
+- Bankovni sustav u C (strukture podataka)
+- GUI program u QT (objektno orijentirano programiranje)
