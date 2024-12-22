@@ -44,6 +44,7 @@ int Isplata(posoba);
 int Placanje(posoba,posoba);
 int UpisPovijest(posoba, const char[], double);
 int IspisPovijest(posoba);
+int Brisanje(posoba, posoba);
 int UpisUDatoteku(posoba);
 int IspisIzDatoteke(posoba);
 
@@ -61,16 +62,16 @@ int main() {
 }
 
 bool Banka(posoba head) {
-	char od[5];
+	char od[10];
 	int counter=0;
 	posoba current;
-	printf("Postojeci korisnik ili novi? E/N/exit "); scanf(" %s", od);
-	while (strcmp(od,"N")==0) {
+	printf("Postojeci korisnik ili novi?\n-E -> Existing\n-N -> New\n-Izlaz\n"); scanf(" %s", od);
+	while (strcmp(od,"N")==0 || strcmp(od,"n")==0) {
 		system("cls");
 		Registracija(head);
-		printf("Postojeci korisnik ili novi? E/N/exit "); scanf(" %s", od);
+		printf("Postojeci korisnik ili novi?\n-E -> Existing\n-N -> New\n-Izlaz\n"); scanf(" %s", od);
 	}
-	if (strcmp(od, "exit") == 0) {
+	if (strcmp(od, "izlaz") == 0 || strcmp(od,"Izlaz")==0) {
 		return false;
 	}
 	if (head->next != NULL) {
@@ -360,12 +361,31 @@ int IspisPovijest(posoba current) {
 	return EXIT_SUCCESS;
 }
 
+int Brisanje(posoba current, posoba head) {
+	ptranzakcija temp = &current->korisnickiracun.head;
+	ptranzakcija del;
+	if (temp->next != NULL) {
+		del = temp->next;
+		while (temp != NULL) {
+			temp = del->next;
+			free(del);
+			del = temp;
+		}
+	}
+	while (head->next != current) {
+		head = head->next;
+	}
+	head->next = current->next;
+	free(current);
+	return EXIT_SUCCESS;
+}
+
 bool Korisnik(posoba current, posoba head) {
 	char odabir[15];
 	bool ret;
 	system("cls");
 	while (1) {
-		printf("Koju radnju zelite obaviti?\n-Stanje\n-Uplata\n-Isplata\n-Placanje\n-Povijest\n-Odjava\n-Izlaz\n"); scanf(" %s", odabir);
+		printf("Koju radnju zelite obaviti?\n-Stanje\n-Uplata\n-Isplata\n-Placanje\n-Povijest\n-Odjava\n-Mijenjanje podataka\n-Brisanje racuna\n-Izlaz\n"); scanf(" %s", odabir);
 		if (strcmp(odabir, "stanje") == 0 || strcmp(odabir, "Stanje") == 0) {
 			system("cls");
 			printf("Trenutno stanje na racunu je: %lf\n", current->korisnickiracun.ustedevina);
@@ -390,6 +410,69 @@ bool Korisnik(posoba current, posoba head) {
 			system("cls");
 			ret = true;
 			break;
+		}
+		else if (strcmp(odabir, "mijenjanje") == 0 || strcmp(odabir, "Mijenjanje") == 0) {
+			system("cls");
+			while (1) {
+				printf("Podatak za izmjenu:\n-Ime\n-Prezime\n-OIB\n-Korisnicko ime\n-Lozinka\n-Izlaz\n"); scanf(" %s", odabir);
+				if (strcmp(odabir, "ime") == 0 || strcmp(odabir, "Ime") == 0) {
+					system("cls");
+					printf("Unesite novo ime: "); scanf(" %s", odabir);
+					strcpy(current->ime, odabir);
+					system("cls");
+				}
+				else if (strcmp(odabir, "prezime") == 0 || strcmp(odabir, "Prezime") == 0) {
+					system("cls");
+					printf("Unesite novo prezime: "); scanf(" %s", odabir);
+					strcpy(current->prezime, odabir);
+					system("cls");
+				}
+				else if (strcmp(odabir, "oib") == 0 || strcmp(odabir, "Oib") == 0) {
+					system("cls");
+					printf("Unesite novi oib: ");
+					current->oib = OIBprovjera();
+					system("cls");
+				}
+				else if (strcmp(odabir, "korisnicko") == 0 || strcmp(odabir, "Korisnicko") == 0) {
+					system("cls");
+					printf("Unesite novo korisnicko ime: ");
+					strcpy(current->korisnickiracun.korisnickoime, KImeProvjera(head));
+					system("cls");
+				}
+				else if (strcmp(odabir, "lozinka") == 0 || strcmp(odabir, "Lozinka") == 0) {
+					system("cls");
+					printf("Unesite staru lozinku: "); scanf(" %s", odabir);
+					if (strcmp(odabir, current->korisnickiracun.lozinka) == 0) {
+						system("cls");
+						printf("Unesite novu lozinku: ");
+						strcpy(current->korisnickiracun.lozinka, LozinkaProvjera());
+						system("cls");
+					}
+					else {
+						system("cls");
+						printf("Unesena netocna stara lozinka.\n");
+					}
+				}
+				else if (strcmp(odabir, "izlaz") == 0 || strcmp(odabir, "Izlaz") == 0) {
+					system("cls");
+					break;
+				}
+				else {
+					system("cls");
+					printf("Nepoznata naredba unesena. Pokusajte ponovno.");
+				}
+			}
+		}
+		else if (strcmp(odabir, "Brisanje") == 0 || strcmp(odabir, "brisanje") == 0) {
+			system("cls");
+			printf("Je li stvarno zelite obrisati racun? Da/Ne "); scanf(" %s", odabir);
+			if (strcmp(odabir, "Da") == 0 || strcmp(odabir, "da") == 0) {
+				Brisanje(current, head);
+				system("cls");
+				ret = true;
+				break;
+			}
+			system("cls");
 		}
 		else if (strcmp(odabir, "izlaz") == 0 || strcmp(odabir, "Izlaz") == 0) {
 			system("cls");
