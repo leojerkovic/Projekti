@@ -47,7 +47,7 @@ MyMainWindow::MyMainWindow() {
     EditNoviOblik = new QAction(tr("&Drugi oblik..."), this);
     EditNoviOblik->setShortcut(tr("CTRL+D"));
     connect(EditNoviOblik, &QAction::triggered, this, &MyMainWindow::EditNoviOblikMenu);
-    EditMenu = menuBar()->addMenu(tr("&Edit"));
+    EditMenu = menuBar()->addMenu(tr("&Uredi"));
     EditMenu->addAction(EditNoviOblik);
 
     FileSaveAs = new QAction(tr("&Spremi kao..."), this);
@@ -58,7 +58,7 @@ MyMainWindow::MyMainWindow() {
     FileOpen->setShortcut(tr("CTRL+O"));
     connect(FileOpen, &QAction::triggered, this, &MyMainWindow::FileOpenMenu);
 
-    FileMenu = menuBar()->addMenu(tr("&File"));
+    FileMenu = menuBar()->addMenu(tr("&Datoteka"));
     FileMenu->addAction(FileSaveAs);
     FileMenu->addAction(FileOpen);
 
@@ -73,15 +73,22 @@ void MyMainWindow::FileSaveAsMenu(){
             return;
         }
         QTextStream out(&file);
+        int i=0;
         out << "oblik file" << Qt::endl;
         for(const QPoint &point:points){
-            out << point.x() << " " << point.y() << " ";
+            i++;
         }
-        out << Qt::endl;
+        out << i << Qt::endl;
+        for(const QPoint &point:points){
+            out << point.x() << " " << point.y() << Qt::endl;
+        }
         for(const QString &string:ShapeOrder){
-            out << string << " ";
+            out << string << Qt::endl;
         }
-        out << Qt::endl;
+        out << pos().x() << Qt::endl;
+        out << pos().y() << Qt::endl;
+        out << size().width() << Qt::endl;
+        out << size().height() << Qt::endl;
     }
 }
 
@@ -93,11 +100,27 @@ void MyMainWindow::FileOpenMenu(){
             QMessageBox::information(this, "Nemoguce otvaranje datoteke", file.errorString());
             return;
         }
+        int x,y,z,w;
+        int br;
         points.clear();
         ShapeOrder.clear();
+        QPoint tpoint;
         QTextStream in(&file);
         QString str; str = in.readLine();
         if(str=="oblik file") {
+            in >> br;
+            for(int i=0;i<br;i++){
+                in >> x >> y;
+                tpoint.setX(x);
+                tpoint.setY(y);
+                points.append(tpoint);
+            }
+            for(int i=0;i<br;i++){
+                in >> str;
+                ShapeOrder.append(str);
+            }
+            in >> x >> y >> z >> w;
+            this->setGeometry(x, y, z, w);
         }
     }
 }
@@ -153,7 +176,7 @@ void MyMainWindow::mousePressEvent(QMouseEvent* event) {
 int main(int argc, char **argv) {
     QApplication app (argc, argv);
     MyMainWindow mainWindow;
-    mainWindow.resize(300,150);
+    mainWindow.resize(720,480);
     mainWindow.show();
     return app.exec();
 }
