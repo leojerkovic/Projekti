@@ -128,6 +128,7 @@ void MyMainWindow::FileOpenMenu(){
             }
             in >> x >> y >> w >> h;
             this->setGeometry(x, y, w, h);
+            update();
         }
     }
 }
