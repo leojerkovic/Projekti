@@ -12,32 +12,38 @@
 
 class MyMainWindow : public QMainWindow {
 private:
-    int i;
-    int j;
+    QVector<QPoint> points;
+    QVector<QString> ShapeOrder;
+
+    QVector<QString> shapes={"Kvadrat","Trokut","Krug"};
+    QString current;
+    int NumCur;
+
+    QString prikaz;
+    QLabel* MyLabel;
+
 public:
     MyMainWindow();
-    QLabel* MyLabel;
+
     void mousePressEvent(QMouseEvent *event) override;
     void paintEvent(QPaintEvent* event) override;
+    int setint();
+
     void EditNoviOblikMenu();
     QMenu* EditMenu;
     QAction* EditNoviOblik;
-    QVector<QPoint> points;
-    QVector<QString> shapes={"Kvadrat","Trokut","Krug"};
-    QVector<QString> ShapeOrder;
-    QString current;
-    QString prikaz;
-    int setint();
+
     void FileSaveAsMenu();
     void FileOpenMenu();
     QMenu* FileMenu;
     QAction* FileSaveAs;
     QAction* FileOpen;
+
 };
 
 MyMainWindow::MyMainWindow() {
-    i=0;
-    j=0;
+
+    NumCur=0;
     current="Krug";
     prikaz="Oblik: " + current;
     MyLabel = new QLabel(this);
@@ -47,8 +53,6 @@ MyMainWindow::MyMainWindow() {
     EditNoviOblik = new QAction(tr("&Drugi oblik..."), this);
     EditNoviOblik->setShortcut(tr("CTRL+D"));
     connect(EditNoviOblik, &QAction::triggered, this, &MyMainWindow::EditNoviOblikMenu);
-    EditMenu = menuBar()->addMenu(tr("&Uredi"));
-    EditMenu->addAction(EditNoviOblik);
 
     FileSaveAs = new QAction(tr("&Spremi kao..."), this);
     FileSaveAs->setShortcut(tr("CTRL+S"));
@@ -57,6 +61,9 @@ MyMainWindow::MyMainWindow() {
     FileOpen = new QAction(tr("&Otvori..."), this);
     FileOpen->setShortcut(tr("CTRL+O"));
     connect(FileOpen, &QAction::triggered, this, &MyMainWindow::FileOpenMenu);
+
+    EditMenu = menuBar()->addMenu(tr("&Uredi"));
+    EditMenu->addAction(EditNoviOblik);
 
     FileMenu = menuBar()->addMenu(tr("&Datoteka"));
     FileMenu->addAction(FileSaveAs);
@@ -100,12 +107,12 @@ void MyMainWindow::FileOpenMenu(){
             QMessageBox::information(this, "Nemoguce otvaranje datoteke", file.errorString());
             return;
         }
-        int x,y,z,w;
+        int x,y,w,h;
         int br;
         points.clear();
         ShapeOrder.clear();
-        QPoint tpoint;
         QTextStream in(&file);
+        QPoint tpoint;
         QString str; str = in.readLine();
         if(str=="oblik file") {
             in >> br;
@@ -119,46 +126,49 @@ void MyMainWindow::FileOpenMenu(){
                 in >> str;
                 ShapeOrder.append(str);
             }
-            in >> x >> y >> z >> w;
-            this->setGeometry(x, y, z, w);
+            in >> x >> y >> w >> h;
+            this->setGeometry(x, y, w, h);
         }
     }
 }
 
 int MyMainWindow::setint(){
-    if(i==2) {
-        i=0;
+    if(NumCur==2) {
+        NumCur=0;
         return 2;
     }
     else {
-        return i++;
+        return NumCur++;
     }
 }
+
 void MyMainWindow::EditNoviOblikMenu() {
     current=shapes[setint()];
     prikaz="Oblik: " + current;
     MyLabel->setText(prikaz);
 }
+
 void MyMainWindow::paintEvent(QPaintEvent*){
     QPainter painter(this);
+    int i=0;
     for (const QPoint &point : points) {
-        if(ShapeOrder[j]=="Krug"){
+        if(ShapeOrder[i]=="Krug"){
             painter.drawEllipse(point, 25, 25);
         }
-        else if (ShapeOrder[j]=="Kvadrat"){
+        else if (ShapeOrder[i]=="Kvadrat"){
             painter.drawLine(point.x(),point.y(),point.x()+35,point.y());
             painter.drawLine(point.x()+35,point.y(),point.x()+35,point.y()+35);
             painter.drawLine(point.x()+35,point.y()+35,point.x(),point.y()+35);
             painter.drawLine(point.x(),point.y()+35,point.x(),point.y());
         }
-        else if (ShapeOrder[j]=="Trokut"){
+        else if (ShapeOrder[i]=="Trokut"){
             painter.drawLine(point.x(),point.y(),point.x()-25,point.y()+35);
             painter.drawLine(point.x()-25,point.y()+35,point.x()+25,point.y()+35);
             painter.drawLine(point.x()+25,point.y()+35,point.x(),point.y());
         }
-        j++;
+        i++;
     }
-    j=0;
+    i=0;
 }
 
 void MyMainWindow::mousePressEvent(QMouseEvent* event) {
@@ -173,6 +183,7 @@ void MyMainWindow::mousePressEvent(QMouseEvent* event) {
         MyLabel->setText(prikaz);
     }
 }
+
 int main(int argc, char **argv) {
     QApplication app (argc, argv);
     MyMainWindow mainWindow;
