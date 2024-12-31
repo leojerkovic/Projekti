@@ -20,6 +20,7 @@ int SljedeciPrBr(int);
 int DodajUHashTab(const char [], const char [], PozicijaHash);
 int BrisiUHashTab(const char[], const char[], PozicijaHash);
 bool JeLiUHashTab(const char[], const char[], PozicijaHash);
+int IzbrisiSveUHashTab(PozicijaHash);
 
 int InitTablice(PozicijaHash Tab,int vel) {
 	Tab->velicina = SljedeciPrBr(vel);
@@ -118,5 +119,23 @@ int BrisiUHashTab(const char korIme[], const char lozinka[], PozicijaHash Tab) {
 	Pozicija br = temp->next;
 	temp->next = br->next;
 	free(br);
+	return EXIT_SUCCESS;
+}
+
+int IzbrisiSveUHashTab(PozicijaHash Tab) {
+	Pozicija temp;
+	Pozicija next;
+	for (int i = 0; i < Tab->velicina; i++) {
+		if (Tab->NizCvorova[i] != NULL) {
+			temp = Tab->NizCvorova[i];
+			next = temp;
+			while (next != NULL) {
+				next = temp->next;
+				free(temp);
+				temp = next;
+			}
+			Tab->NizCvorova[i] = NULL;
+		}
+	}
 	return EXIT_SUCCESS;
 }

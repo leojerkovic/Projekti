@@ -40,12 +40,15 @@ bool Banka(posoba,PozicijaHash);
 int Registracija(posoba,PozicijaHash);
 posoba Login(posoba,PozicijaHash);
 bool Korisnik(posoba, posoba, PozicijaHash);
+bool Admin(posoba, PozicijaHash);
 int Uplata(posoba);
 int Isplata(posoba);
 int Placanje(posoba,posoba);
 int UpisPovijest(posoba, const char[], double);
 int IspisPovijest(posoba);
 int Brisanje(posoba, posoba, const char[], PozicijaHash);
+int BrisanjeSve(posoba);
+int Izlistati(posoba);
 int UpisUDatoteku(posoba);
 int IspisIzDatoteke(posoba);
 int IspisIzDatotekeHash(PozicijaHash);
@@ -81,7 +84,15 @@ bool Banka(posoba head,PozicijaHash Tab) {
 	if (strcmp(od, "izlaz") == 0 || strcmp(od,"Izlaz")==0) {
 		return false;
 	}
-	if (head->next != NULL) {
+	if (strcmp(od, "ADMIN") == 0) {
+		return Admin(head,Tab);
+	}
+	if (strcmp(od, "E") == 0 || strcmp(od, "e") == 0) {
+		if (head->next == NULL) {
+			system("cls");
+			printf("Baza korisnika prazna...\n");
+			return true;
+		}
 		system("cls");
 		printf("Prijavite se:\n");
 		while ((current = Login(head,Tab)) == NULL) {
@@ -95,12 +106,71 @@ bool Banka(posoba head,PozicijaHash Tab) {
 	}
 	else {
 		system("cls");
-		printf("Baza korisnika prazna...\n");
+		printf("Unesena nepoznata naredba...\n");
 		return true;
 	}
-	
 	return Korisnik(current,head,Tab);
 
+}
+
+bool Admin(posoba head, PozicijaHash Tab) {
+	char odabir[15];
+	bool ret;
+	system("cls");
+	while (1) {
+		printf("ADMIN - Koju radnju zelite obaviti?\n-Izlistat korisnike\n-Obrisi sve\n-Odjava\n-Izlaz\n"); scanf(" %s", odabir);
+		if (strcmp(odabir, "izlistat") == 0 || strcmp(odabir, "Izlistat") == 0) {
+			system("cls");
+			Izlistati(head);
+		}
+		else if (strcmp(odabir, "obrisi") == 0 || strcmp(odabir, "Obrisi") == 0) {
+			system("cls");
+			printf("Unesite POTVRDA za kompletno brisanje, ostali unosi vracaju na pocetak: "); scanf(" %s", odabir);
+			if (strcmp("POTVRDA", odabir) == 0) {
+				system("cls");
+				IzbrisiSveUHashTab(Tab);
+				BrisanjeSve(head);
+				printf("Uspjesno baza obrisana.\n");
+			}
+			else {
+				system("cls");
+			}
+		}
+		else if (strcmp(odabir, "odjava") == 0 || strcmp(odabir, "Odjava") == 0) {
+			system("cls");
+			ret = true;
+			break;
+		}
+		else if (strcmp(odabir, "izlaz") == 0 || strcmp(odabir, "Izlaz") == 0) {
+			system("cls");
+			ret = false;
+			break;
+		}
+		else {
+			system("cls");
+			printf("Unesena nepoznata naredba, pokusajte ponovno.\n");
+		}
+	}
+	return ret;
+}
+
+int Izlistati(posoba head) {
+	if (head->next == NULL) {
+		printf("Nema korisnika u bazi...\n");
+		return EXIT_FAILURE;
+	}
+	head = head->next;
+	while (head != NULL) {
+		printf("Ime korisnika: %s %s\n", head->ime, head->prezime);
+		printf("OIB: %d\n", head->oib);
+		printf("Korisnicko ime: %s\n", head->korisnickiracun.korisnickoime);
+		printf("Iznos na racunu: %lf\n", head->korisnickiracun.ustedevina);
+		printf("Povijest tranzakcija (prema vrhu novije):\n");
+		IspisPovijest(head);
+		printf("\n");
+		head = head->next;
+	}
+	return EXIT_SUCCESS;
 }
 
 unsigned int OIBprovjera() {
@@ -355,12 +425,10 @@ int UpisPovijest(posoba current,const char opis[], double iznos) {
 int IspisPovijest(posoba current) {
 	ptranzakcija head = &current->korisnickiracun.head;
 	if (head->next == NULL) {
-		system("cls");
 		printf("Nema izvrsenih tranzakcija.\n");
 		return EXIT_SUCCESS;
 	}
 	head = head->next;
-	system("cls");
 	while (head != NULL) {
 		printf("%s: %lf\n", head->vrsta, head->iznos);
 		head = head->next;
@@ -385,6 +453,31 @@ int Brisanje(posoba current, posoba head, const char loz[], PozicijaHash Tab) {
 	head->next = current->next;
 	BrisiUHashTab(current->korisnickiracun.korisnickoime, loz, Tab);
 	free(current);
+	return EXIT_SUCCESS;
+}
+
+int BrisanjeSve(posoba head) {
+	if (head->next == NULL) {
+		printf("Nema korisnika za brisanje...\n");
+		return EXIT_FAILURE;
+	}
+	posoba current;
+	ptranzakcija temp;
+	ptranzakcija del;
+	while (head->next != NULL) {
+		current = head->next;
+		temp = &current->korisnickiracun.head;
+		if (temp->next != NULL) {
+			del = temp->next;
+			while (temp != NULL) {
+				temp = del->next;
+				free(del);
+				del = temp;
+			}
+		}
+		head->next = current->next;
+		free(current);
+	}
 	return EXIT_SUCCESS;
 }
 
@@ -443,9 +536,19 @@ bool Korisnik(posoba current, posoba head, PozicijaHash Tab) {
 				}
 				else if (strcmp(odabir, "korisnicko") == 0 || strcmp(odabir, "Korisnicko") == 0) {
 					system("cls");
-					printf("Unesite novo korisnicko ime: ");
-					strcpy(current->korisnickiracun.korisnickoime, KImeProvjera(head));
-					system("cls");
+					printf("Unesite staru lozinku: "); scanf(" %s", odabir);
+					if (JeLiUHashTab(current->korisnickiracun.korisnickoime, odabir, Tab)) {
+						system("cls");
+						printf("Unesite novo korisnicko ime: ");
+						BrisiUHashTab(current->korisnickiracun.korisnickoime, odabir, Tab);
+						strcpy(current->korisnickiracun.korisnickoime, KImeProvjera(head));
+						DodajUHashTab(current->korisnickiracun.korisnickoime, odabir, Tab);
+						system("cls");
+					}
+					else {
+						system("cls");
+						printf("Unesena netocna stara lozinka.\n");
+					}
 				}
 				else if (strcmp(odabir, "lozinka") == 0 || strcmp(odabir, "Lozinka") == 0) {
 					system("cls");
