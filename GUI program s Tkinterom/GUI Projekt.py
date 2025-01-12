@@ -196,6 +196,8 @@ class unos_zadatka:
             return
         self.filename=self.temp
         messagebox.showinfo(title='Odabrana datoteka', message=self.filename)
+        self.slika = tk.PhotoImage(file=self.filename)
+        self.canvas.itemconfig(self.slika_id, image=self.slika)
     
     def izadi(self,event=None):
         self.sadrzaj=self.zadatak.get('1.0',tk.END)
@@ -355,6 +357,7 @@ scroll_bar = tk.Scrollbar(frame)
 scroll_bar.pack(side=tk.RIGHT, fill=tk.Y)
 tasks_listbox.config(yscrollcommand=scroll_bar.set)
 scroll_bar.config(command=tasks_listbox.yview)
+
 
 # Remove Task button
 remove_button = tk.Button(root, text="Ukloni zadatak (Backspace)", command=remove_task)
