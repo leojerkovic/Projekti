@@ -1,109 +1,75 @@
-"""import tkinter as tk
-from tkinter import messagebox
-
-class MyGUI:
-    def __init__(self):
-
-        self.root=tk.Tk()
-        self.root.title("To-Do List Manager")
-        self.root.geometry("1920x1080")
-
-        self.menubar=tk.Menu(self.root)
-
-        self.filemenu=tk.Menu(self.menubar, tearoff=0)
-        self.filemenu.add_command(label="Close",command=self.on_closing)
-    
-        self.menubar.add_cascade(label="File",menu=self.filemenu)
-
-        self.root.config(menu=self.menubar)
-
-        self.mainlabel=tk.Label(self.root,text="To-Do List Manager",font=('Arial',18))
-        self.mainlabel.pack(padx=10,pady=10)
-
-        self.check_state=tk.IntVar()
-        self.button=tk.Button(self.root,text="Dodaj novi zadatak!",font=('Arial',18),command=self.new_task)
-        self.button.pack(padx=10,pady=10)
-
-        self.root.protocol("WM_DELETE_WINDOW",self.on_closing)
-
-        self.root.rowconfigure(2, weight=1)
-        self.root.columnconfigure(0, weight=1)
-
-        self.root.mainloop()
-
-    def new_task(self):
-        self.button.pack_forget()
-
-        self.textbox=tk.Text(self.root,height=5,font=('Arial',16))
-        self.textbox.bind("<KeyPress>",self.keyboard_entry)
-        self.textbox.pack(padx=10,pady=10)
-
-        self.setbtn=tk.Button(self.root,text="Potvrdi unos",font=('Arial',18),command=self.button_entry)
-        self.setbtn.pack(padx=10,pady=10)
-
-        self.clearbtn=tk.Button(self.root,text="Očisti unos",font=('Arial',18),command=self.clear)
-        self.clearbtn.pack(padx=10,pady=10)
-        
-    def keyboard_entry(self, event):
-        if event.state== 12 and event.keysym=="Return":
-            self.content=self.textbox.get('1.0',tk.END)
-
-            self.textbox.pack_forget()
-            self.clearbtn.pack_forget()
-            self.setbtn.pack_forget()
-            self.button.pack()
-
-            output_box = tk.Text(self.root,height=5,width=30,font=('Arial',16))
-            output_box.insert("1.0", self.content)
-            output_box.config(state="disabled")
-            output_box.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True, padx=10, pady=5)
-
-    def on_closing(self):
-        if messagebox.askyesno(title="Izlaz?",message="Je li stvarno želite izac?"):
-            self.root.destroy()
-
-    def button_entry(self):
-        self.content = self.textbox.get('1.0', tk.END)
-
-        self.textbox.pack_forget()
-        self.clearbtn.pack_forget()
-        self.setbtn.pack_forget()
-        self.button.pack()
-
-        output_box = tk.Text(self.root,height=5,width=30,font=('Arial',16))
-        output_box.insert("1.0", self.content)
-        output_box.config(state="disabled")
-        output_box.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True, padx=10, pady=5)
-
-    def clear(self):
-        self.textbox.delete('1.0',tk.END)
-        
-MyGUI()"""
-
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import simpledialog
 
+class dodaci:
+    def __init__(self,root,doit):
+        self.frame2 = tk.Frame(root)
+        self.frame2.pack()
+        
+        self.MenuBttn = tk.Menubutton(self.frame2, text = "Dodaci", relief = tk.RAISED)
+        
+        self.Var1 = tk.IntVar()
+        
+        self.Menu1 = tk.Menu(self.MenuBttn, tearoff = 0)
+        
+        self.Menu1.add_checkbutton(label = "Check lista", variable = self.Var1, command=doit)
+        
+        self.MenuBttn["menu"] = self.Menu1
+
+        self.MenuBttn.pack()
+        
+    
+    def set(self):
+        return self.Var1.get()
+
+    def __del__(self):
+        print("Destruktor se pozvao dodatci")
+
+
 class unos_zadatka:
     def __init__(self,root,ime,menubar):
+        
+        self.dodaci=dodaci(root,self.doit)
+
         self.menubar=menubar
         self.imezadatka=ime
         self.sadrzaj=""
+
         self.zadatak=tk.Text(root,height=10,font=('Arial',16))
         self.zadatak.pack(padx=10,pady=10)
         self.zadatak.bind("<Control-Return>",self.izadi)
+
         if not (self.sadrzaj.strip()):
             self.zadatak.insert("1.0",self.sadrzaj)
+
         self.dodajzad = tk.Button(root, text="Izađi (Ctrl+Enter)", command=self.izadi)
-        self.dodajzad.pack(pady=5)
+        self.dodajzad.pack(pady=10)
+
+        print(self.dodaci.Var1.get())
+
+    def doit(self):
+            self.frame3 = tk.Frame(root)
+            self.frame3.pack()
+            
+            self.Var1 = tk.IntVar()
+            self.Var2 = tk.IntVar()
+            
+            self.ChkBttn = tk.Checkbutton(self.frame3, width = 15, variable = self.Var1)
+            self.ChkBttn.pack(padx = 5, pady = 5)
+            
+            self.ChkBttn2 = tk.Checkbutton(self.frame3, width = 15, variable = self.Var2)
+            self.ChkBttn2.pack(padx = 5, pady = 5)
 
     def izadi(self,event=None):
         self.sadrzaj=self.zadatak.get('1.0',tk.END)
+
         for widget in root.winfo_children():
             if widget==self.menubar:
                 root.config(menu=menubar)
                 continue
-            widget.pack()
+            widget.pack(pady=10)
+
         for widget in listaunosa:
             widget.zadatak.pack_forget()
             widget.dodajzad.pack_forget()
@@ -125,7 +91,7 @@ def add_task(event = None):
 def remove_task(event=None):
     try:
         selected_task_index = tasks_listbox.curselection()[0] # Get selected task index
-        if 0 <= selected_task_index and selected_task_index < len(listaunosa):
+        if 0 <= selected_task_index and selected_task_index < len(listaunosa) and not listaunosa[selected_task_index].sadrzaj.strip():
             listaunosa[selected_task_index].zadatak.destroy()
             listaunosa[selected_task_index].dodajzad.destroy()
             listaunosa.remove(listaunosa[selected_task_index])
@@ -171,29 +137,43 @@ root = tk.Tk()
 root.title("Voditelj popisa zadataka")
 root.geometry("800x600")  # Set the window size
 
+labela = tk.Label(root, text="Unesite zadatak:", font=("Arial", 16))
+labela.pack(pady=10)
+
 # Input field to add a task
 task_entry = tk.Entry(root, width=40)
-task_entry.pack(pady=10)
+task_entry.pack(pady=5)
 task_entry.bind("<Return>", add_task)
+task_entry.tkraise()
+
 
 # Add Task button
 add_button = tk.Button(root, text="Dodaj zadatak (Enter)", command=add_task)
-add_button.pack(pady=5)
+add_button.pack(pady=10)
 
 # Tasks display area (Listbox)
-tasks_listbox = tk.Listbox(root, height=15, width=40)
-tasks_listbox.pack(pady=10)
+
+frame = tk.Frame(root)
+frame.pack(pady=10, padx=10)
+
+tasks_listbox = tk.Listbox(frame, height=15, width=40)
+tasks_listbox.pack(side=tk.LEFT, fill=tk.BOTH)
 tasks_listbox.bind("<Double-Button-1>", on_double_click)
 tasks_listbox.bind("<BackSpace>", remove_task)
 tasks_listbox.bind("<Control-BackSpace>", clear_tasks)
 
+scroll_bar = tk.Scrollbar(frame)
+scroll_bar.pack(side=tk.RIGHT, fill=tk.Y)
+tasks_listbox.config(yscrollcommand=scroll_bar.set)
+scroll_bar.config(command=tasks_listbox.yview)
+
 # Remove Task button
 remove_button = tk.Button(root, text="Ukloni zadatak (Backspace)", command=remove_task)
-remove_button.pack(pady=5)
+remove_button.pack(pady=10)
 
 # Clear Tasks button
 clear_button = tk.Button(root, text="Ukloni sve zadatke (Ctrl + Backspace)", command=clear_tasks)
-clear_button.pack(pady=5)
+clear_button.pack(pady=10)
 
 listaunosa=[]
 
