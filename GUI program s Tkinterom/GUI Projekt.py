@@ -78,9 +78,13 @@ class unos_zadatka:
                 self.listabotuna[i].pack()       
 
         else:
-            for widget in self.frame3.winfo_children():
-                widget.destroy()
-            self.frame3.destroy()
+            if messagebox.askyesno("Potvrda", "Jeste li sigurni da želite poništiti check listu?"):
+                for widget in self.frame3.winfo_children():
+                    widget.destroy()
+                self.frame3.destroy()
+            else:
+                self.dodaci.Var1.set(1)
+                return
     
     def strikethrough(self,i):
         print(i)
@@ -90,29 +94,80 @@ class unos_zadatka:
             self.listafontova[i].configure(overstrike=0)
 
     def stvoricanvas(self):
-        self.canvas = tk.Canvas(root, width=1000, height=500, bg='white')
-        self.canvas.pack(pady = 10)
+        if self.dodaci.Var2.get()==1:
+            self.canvas = tk.Canvas(root, width=1000, height=500, bg='white')
+            self.canvas.pack(pady = 10)
 
-        self.line_id = None
-        self.line_points = []
-        self.line_options = {}
+            self.line_id = None
+            self.line_points = []
+            self.line_options = {}
 
-        self.frame4 = tk.Frame(root)
-        self.frame4.pack()
+            self.frame4 = tk.Frame(root)
+            self.frame4.pack()
 
-        self.botunMijenjajSliku = tk.Button(self.frame4, text="Ucitaj/Promijeni sliku", command=self.slike)
-        self.botunMijenjajSliku.pack(side=tk.LEFT)
+            self.botunMijenjajSliku = tk.Button(self.frame4, text="Ucitaj/Promijeni sliku", command=self.slike)
+            self.botunMijenjajSliku.pack(side=tk.LEFT)
 
-        self.botunCrtaj=tk.Button(self.frame4,text="Crtaj",command=self.odaberi)
-        self.botunCrtaj.pack(side=tk.RIGHT)
+            self.botunCrtaj=tk.Button(self.frame4,text="Crtaj",command=self.odaberi)
+            self.botunCrtaj.pack(side=tk.RIGHT)
+            
+            #Default slika
+            self.filename = r"C:\Users\leoje\Desktop\Projekti\GUI program s Tkinterom\def.png" 
 
-        self.slika = tk.PhotoImage(file=r"C:\Users\leoje\Desktop\Projekti\GUI program s Tkinterom\def.png")
-        self.canvas.create_image(100,100,anchor="nw",image=self.slika)
+            self.slika = tk.PhotoImage(file=self.filename)
+            self.zoom_level = 1
+            self.slika_id=self.canvas.create_image(100,100,anchor="nw",image=self.slika)
+            self.canvas.bind("<MouseWheel>",self.imagezoom)
+            self.canvas.bind("<B1-Motion>",self.move)
+
+
+        else:
+            if messagebox.askyesno("Potvrda", "Jeste li sigurni da želite poništiti canvas?"):
+                self.canvas.destroy()
+                self.botunMijenjajSliku.destroy()
+                self.botunCrtaj.destroy()
+                self.frame4.destroy()
+            else:
+                self.dodaci.Var2.set(1)
+                return
 
     def odaberi(self):
         self.canvas.bind('<Button-1>', self.zapocni)
         self.canvas.bind("<B1-Motion>",self.crtaj)
         self.canvas.bind('<ButtonRelease-1>', self.stani)
+
+    def imagezoom(self,event):
+
+        if event.delta > 0 and self.zoom_level<=2:  # Zoom in
+
+            if self.zoom_level == -2:
+                self.zoom_level=2
+            else:
+                self.zoom_level += 1
+
+            zoomed_image = self.slika.zoom(2, 2)
+            self.canvas.itemconfig(self.slika_id, image=zoomed_image)
+
+            self.slika = zoomed_image
+            
+        elif event.delta < 0 and self.zoom_level>=-3:  # Zoom out
+
+            if self.zoom_level == 2 or self.zoom_level == 1:
+                self.zoom_level=-2
+            else:
+                self.zoom_level -= 1
+        
+            zoomed_image = self.slika.subsample(2, 2)
+            self.canvas.itemconfig(self.slika_id, image=zoomed_image)
+
+            self.slika = zoomed_image
+
+        else:
+            return
+
+        print(self.zoom_level)
+
+        
 
     def zapocni(self,event):
         self.line_points.extend((event.x, event.y))
@@ -129,19 +184,17 @@ class unos_zadatka:
         self.line_points.clear()
         line_id = None
 
-    def move(self,event):
-        global slika
-        self.slika = tk.PhotoImage(file=self.filename)
-        self.canvas.create_image(event.x,event.y,image=self.slika)
+    def move(self, event):
+        self.canvas.coords(self.slika_id, event.x-150, event.y-150)
 
     def slike(self):
         self.canvas.bind("<B1-Motion>",self.move)
-        self.tempcommand=self.move
         self.filetypes = (('png datoteka', '*.png'),('jpg datoteka', '*.jpg'),('jpeg datoteka', '*.jpeg'))
-        self.filename = filedialog.askopenfilename(title='Otvori datoteku',initialdir='/',filetypes=self.filetypes)
-        if not self.filename:
+        self.temp = filedialog.askopenfilename(title='Otvori datoteku',initialdir='/',filetypes=self.filetypes)
+        if not self.temp:
             messagebox.showinfo(title='Odabrana datoteka', message="Niste odabrali datoteku.")
             return
+        self.filename=self.temp
         messagebox.showinfo(title='Odabrana datoteka', message=self.filename)
     
     def izadi(self,event=None):
@@ -164,6 +217,12 @@ class unos_zadatka:
                 for j in widget.listabotuna:
                     j.pack_forget()
                 widget.frame3.pack_forget()
+
+            if widget.dodaci.Var2.get()==1:
+                widget.canvas.pack_forget()
+                widget.botunMijenjajSliku.pack_forget()
+                widget.botunCrtaj.pack_forget()
+                widget.frame4.pack_forget()
     
     def __del__(self):
         print("Destruktor se pozvao unos_zad")
@@ -193,6 +252,11 @@ def remove_task(event=None):
                 for j in listaunosa[selected_task_index].listabotuna:
                     j.destroy()
                 listaunosa[selected_task_index].frame3.destroy()
+            if listaunosa[selected_task_index].dodaci.Var2.get()==1:
+                listaunosa[selected_task_index].canvas.destroy()
+                listaunosa[selected_task_index].botunMijenjajSliku.destroy()
+                listaunosa[selected_task_index].botunCrtaj.destroy()
+                listaunosa[selected_task_index].frame4.destroy()
             listaunosa.remove(listaunosa[selected_task_index])
 
         tasks_listbox.delete(selected_task_index)  # Remove the task
@@ -212,6 +276,11 @@ def clear_tasks(event=None):
                 for j in i.listabotuna:
                     j.destroy()
                 i.frame3.destroy()
+            if i.dodaci.Var2.get()==1:
+                i.canvas.destroy()
+                i.botunMijenjajSliku.destroy()
+                i.botunCrtaj.destroy()
+                i.frame4.destroy()
         listaunosa.clear()
         tasks_listbox.delete(0, tk.END)  # Remove all tasks
 
@@ -235,6 +304,11 @@ def on_double_click(event):
                 i.frame3.pack()
                 for j in i.listabotuna:
                     j.pack()
+            if i.dodaci.Var2.get()==1:
+                i.canvas.pack(pady = 10)
+                i.frame4.pack()
+                i.botunMijenjajSliku.pack(side=tk.LEFT)
+                i.botunCrtaj.pack(side=tk.RIGHT)
             return
     messagebox.showinfo("Novi unos", f"Novi unos u: {selected_task}")
     listaunosa.insert(selected_task_index,unos_zadatka(root,selected_task,menubar))
@@ -271,7 +345,7 @@ add_button.pack(pady=10)
 frame = tk.Frame(root)
 frame.pack(pady=10, padx=10)
 
-tasks_listbox = tk.Listbox(frame, height=15, width=40)
+tasks_listbox = tk.Listbox(frame, height=30, width=100)
 tasks_listbox.pack(side=tk.LEFT, fill=tk.BOTH)
 tasks_listbox.bind("<Double-Button-1>", on_double_click)
 tasks_listbox.bind("<BackSpace>", remove_task)
