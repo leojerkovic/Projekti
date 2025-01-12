@@ -1,20 +1,24 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import messagebox
 from tkinter import simpledialog
 from tkinter import font
+from tkinter import filedialog
 
 class odabirdodataka:
-    def __init__(self,root,checklista):
+    def __init__(self,root,checklista,stvoricanvas,slike):
         self.frame2 = tk.Frame(root)
         self.frame2.pack()
         
         self.MenuBttn = tk.Menubutton(self.frame2, text = "Dodaci", relief = tk.RAISED)
         
         self.Var1 = tk.IntVar()
+        self.Var2 = tk.IntVar()
         
         self.Menu1 = tk.Menu(self.MenuBttn, tearoff = 0)
         
         self.Menu1.add_checkbutton(label = "Check lista", variable = self.Var1, command=checklista)
+        self.Menu1.add_checkbutton(label = "Canvas", variable = self.Var2, command=stvoricanvas)
         
         self.MenuBttn["menu"] = self.Menu1
 
@@ -28,7 +32,7 @@ class unos_zadatka:
     def __init__(self,root,ime,menubar):
 
         
-        self.dodaci=odabirdodataka(root,self.checklista)
+        self.dodaci=odabirdodataka(root,self.checklista,self.stvoricanvas,self.slike)
 
         self.menubar=menubar
         self.imezadatka=ime
@@ -85,6 +89,58 @@ class unos_zadatka:
         else:
             self.listafontova[i].configure(overstrike=0)
 
+    def stvoricanvas(self):
+        self.canvas = tk.Canvas(root, width=1000, height=1000, bg='white')
+        self.canvas.pack(pady = 10)
+
+        self.tempcommand=self.slike
+
+        self.frame4 = tk.Frame(root)
+        self.frame4.pack()
+
+        self.botunMijenjajSliku = tk.Button(self.frame4, text="Ucitaj/Promijeni sliku", command=self.slike)
+        self.botunMijenjajSliku.pack(sidd=tk.LEFT)
+
+        self.botunCrtaj=tk.Button(self.frame4,text="Crtaj",command=self.odaberi)
+        self.botunCrtaj.pack(side=tk.RIGHT)
+
+        self.slika = tk.PhotoImage(file="C:\Users\leoje\Desktop\Projekti\GUI program s Tkinterom\default.png")
+        self.canvas.create_image(100,100,anchor="nw",image=self.slika)
+
+        self.canvas.bind('<Button-1>', self.zapocni)
+        self.canvas.bind("<B1-Motion>",self.tempcommand)
+        self.canvas.bind('<ButtonRelease-1>', self.stani)
+
+    def set_start(event):
+        line_points.extend((event.x, event.y))
+
+    def odaberi(self):
+        self.tempcommand=self.crtaj
+
+    def crtaj(self,event):
+    
+    def stani(event=None):
+        global line_id
+        line_points.clear()
+        line_id = None
+
+    def move(self,event):
+        global slika
+        self.slika = tk.PhotoImage(file=self.filename)
+        self.canvas.create_image(event.x,event.y,image=self.slika)
+
+    def slike(self):
+        self.tempcommand=self.move
+        self.filetypes = (('png datoteka', '*.png'),('jpg datoteka', '*.jpg'),('jpeg datoteka', '*.jpeg'))
+        self.filename = filedialog.askopenfilename(title='Otvori datoteku',initialdir='/',filetypes=self.filetypes)
+        if self.filename==None:
+            messagebox.showinfo(title='Odabrana datoteka', message="Niste odabrali datoteku.")
+            return
+        messagebox.showinfo(title='Odabrana datoteka', message=self.filename)
+    
+    def crtaj(self, event):
+
+
 
     def izadi(self,event=None):
         self.sadrzaj=self.zadatak.get('1.0',tk.END)
@@ -106,16 +162,6 @@ class unos_zadatka:
                 for j in widget.listabotuna:
                     j.pack_forget()
                 widget.frame3.pack_forget()
-
-        """ for widget in self.dodaci.frame2.winfo_children():
-            widget.pack_forget()
-        
-        self.dodaci.frame2.pack_forget()
-
-        if self.dodaci.Var1.get()==1:
-            for widget in self.frame3.winfo_children():
-                widget.pack_forget()
-            self.frame3.pack_forget() """
     
     def __del__(self):
         print("Destruktor se pozvao unos_zad")
@@ -202,7 +248,7 @@ def popupdodaj():
 # Main application window
 root = tk.Tk()
 root.title("Voditelj popisa zadataka")
-root.geometry("800x600")  # Set the window size
+root.geometry("1920x1080")  # Set the window size
 
 labela = tk.Label(root, text="Unesite zadatak:", font=("Arial", 16))
 labela.pack(pady=10)
