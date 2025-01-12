@@ -6,7 +6,7 @@ from tkinter import font
 from tkinter import filedialog
 
 class odabirdodataka:
-    def __init__(self,root,checklista,stvoricanvas,slike):
+    def __init__(self,root,checklista,stvoricanvas):
         self.frame2 = tk.Frame(root)
         self.frame2.pack()
         
@@ -32,7 +32,7 @@ class unos_zadatka:
     def __init__(self,root,ime,menubar):
 
         
-        self.dodaci=odabirdodataka(root,self.checklista,self.stvoricanvas,self.slike)
+        self.dodaci=odabirdodataka(root,self.checklista,self.stvoricanvas)
 
         self.menubar=menubar
         self.imezadatka=ime
@@ -90,38 +90,43 @@ class unos_zadatka:
             self.listafontova[i].configure(overstrike=0)
 
     def stvoricanvas(self):
-        self.canvas = tk.Canvas(root, width=1000, height=1000, bg='white')
+        self.canvas = tk.Canvas(root, width=1000, height=500, bg='white')
         self.canvas.pack(pady = 10)
 
-        self.tempcommand=self.slike
+        self.line_id = None
+        self.line_points = []
+        self.line_options = {}
 
         self.frame4 = tk.Frame(root)
         self.frame4.pack()
 
         self.botunMijenjajSliku = tk.Button(self.frame4, text="Ucitaj/Promijeni sliku", command=self.slike)
-        self.botunMijenjajSliku.pack(sidd=tk.LEFT)
+        self.botunMijenjajSliku.pack(side=tk.LEFT)
 
         self.botunCrtaj=tk.Button(self.frame4,text="Crtaj",command=self.odaberi)
         self.botunCrtaj.pack(side=tk.RIGHT)
 
-        self.slika = tk.PhotoImage(file="C:\Users\leoje\Desktop\Projekti\GUI program s Tkinterom\default.png")
+        self.slika = tk.PhotoImage(file=r"C:\Users\leoje\Desktop\Projekti\GUI program s Tkinterom\def.png")
         self.canvas.create_image(100,100,anchor="nw",image=self.slika)
 
+    def odaberi(self):
         self.canvas.bind('<Button-1>', self.zapocni)
-        self.canvas.bind("<B1-Motion>",self.tempcommand)
+        self.canvas.bind("<B1-Motion>",self.crtaj)
         self.canvas.bind('<ButtonRelease-1>', self.stani)
 
-    def set_start(event):
-        line_points.extend((event.x, event.y))
-
-    def odaberi(self):
-        self.tempcommand=self.crtaj
+    def zapocni(self,event):
+        self.line_points.extend((event.x, event.y))
 
     def crtaj(self,event):
-    
-    def stani(event=None):
         global line_id
-        line_points.clear()
+        self.line_points.extend((event.x, event.y))
+        if self.line_id is not None:
+            self.canvas.delete(line_id)
+        line_id = self.canvas.create_line(self.line_points, **self.line_options)
+
+    def stani(self,event=None):
+        global line_id
+        self.line_points.clear()
         line_id = None
 
     def move(self,event):
@@ -130,18 +135,15 @@ class unos_zadatka:
         self.canvas.create_image(event.x,event.y,image=self.slika)
 
     def slike(self):
+        self.canvas.bind("<B1-Motion>",self.move)
         self.tempcommand=self.move
         self.filetypes = (('png datoteka', '*.png'),('jpg datoteka', '*.jpg'),('jpeg datoteka', '*.jpeg'))
         self.filename = filedialog.askopenfilename(title='Otvori datoteku',initialdir='/',filetypes=self.filetypes)
-        if self.filename==None:
+        if not self.filename:
             messagebox.showinfo(title='Odabrana datoteka', message="Niste odabrali datoteku.")
             return
         messagebox.showinfo(title='Odabrana datoteka', message=self.filename)
     
-    def crtaj(self, event):
-
-
-
     def izadi(self,event=None):
         self.sadrzaj=self.zadatak.get('1.0',tk.END)
 
