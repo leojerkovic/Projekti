@@ -1,9 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import simpledialog
+from tkinter import font
 
-class dodaci:
-    def __init__(self,root,doit):
+class odabirdodataka:
+    def __init__(self,root,checklista):
         self.frame2 = tk.Frame(root)
         self.frame2.pack()
         
@@ -13,15 +14,11 @@ class dodaci:
         
         self.Menu1 = tk.Menu(self.MenuBttn, tearoff = 0)
         
-        self.Menu1.add_checkbutton(label = "Check lista", variable = self.Var1, command=doit)
+        self.Menu1.add_checkbutton(label = "Check lista", variable = self.Var1, command=checklista)
         
         self.MenuBttn["menu"] = self.Menu1
 
         self.MenuBttn.pack()
-        
-    
-    def set(self):
-        return self.Var1.get()
 
     def __del__(self):
         print("Destruktor se pozvao dodatci")
@@ -29,8 +26,9 @@ class dodaci:
 
 class unos_zadatka:
     def __init__(self,root,ime,menubar):
+
         
-        self.dodaci=dodaci(root,self.doit)
+        self.dodaci=odabirdodataka(root,self.checklista)
 
         self.menubar=menubar
         self.imezadatka=ime
@@ -46,20 +44,41 @@ class unos_zadatka:
         self.dodajzad = tk.Button(root, text="Izađi (Ctrl+Enter)", command=self.izadi)
         self.dodajzad.pack(pady=10)
 
-        print(self.dodaci.Var1.get())
-
-    def doit(self):
+    def checklista(self):
+        if self.dodaci.Var1.get()==1:
             self.frame3 = tk.Frame(root)
             self.frame3.pack()
-            
-            self.Var1 = tk.IntVar()
-            self.Var2 = tk.IntVar()
-            
-            self.ChkBttn = tk.Checkbutton(self.frame3, width = 15, variable = self.Var1)
-            self.ChkBttn.pack(padx = 5, pady = 5)
-            
-            self.ChkBttn2 = tk.Checkbutton(self.frame3, width = 15, variable = self.Var2)
-            self.ChkBttn2.pack(padx = 5, pady = 5)
+
+            self.listaprovjeraVar=[]
+            self.listaprovjeraStr=[]
+            self.listafontova=[]
+
+            self.dodatibr = tk.simpledialog.askinteger(title="Unos", prompt="Unesite broj 'check' marki:")
+
+            for i in range(self.dodatibr):
+                self.fontYeah = font.Font(family="Helvetica", size=14)
+                self.listafontova.append(self.fontYeah)
+
+                self.dodati = tk.simpledialog.askstring(title="Unos", prompt=f"Unesite tekst za {i+1}. 'kutiju':")
+                self.listaprovjeraStr.append(self.dodati)
+
+                self.listaprovjeraVar.append(tk.IntVar())
+
+                checkbutton = tk.Checkbutton(self.frame3, font=self.listafontova[i],text=self.listaprovjeraStr[i], variable=self.listaprovjeraVar[i], command=lambda idx=i: self.strikethrough(idx))
+                checkbutton.pack()       
+
+        else:
+            for widget in self.frame3.winfo_children():
+                widget.destroy()
+            self.frame3.destroy()
+    
+    def strikethrough(self,i):
+        print(i)
+        if self.listaprovjeraVar[i].get():
+            self.listafontova[i].configure(overstrike=1)  
+        else:
+            self.listafontova[i].configure(overstrike=0)
+
 
     def izadi(self,event=None):
         self.sadrzaj=self.zadatak.get('1.0',tk.END)
@@ -73,10 +92,21 @@ class unos_zadatka:
         for widget in listaunosa:
             widget.zadatak.pack_forget()
             widget.dodajzad.pack_forget()
+
+        for widget in self.dodaci.frame2.winfo_children():
+            widget.pack_forget()
+        
+        self.dodaci.frame2.pack_forget()
+        
+        for widget in self.frame3.winfo_children():
+            widget.pack_forget()
+
+        self.dodaci.frame3.pack_forget()
     
     def __del__(self):
         print("Destruktor se pozvao unos_zad")
         
+
 
 # Function to add a task to the list
 def add_task(event = None):
