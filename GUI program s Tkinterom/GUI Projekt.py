@@ -52,6 +52,7 @@ class unos_zadatka:
             self.listaprovjeraVar=[]
             self.listaprovjeraStr=[]
             self.listafontova=[]
+            self.listabotuna=[]
 
             self.dodatibr = tk.simpledialog.askinteger(title="Unos", prompt="Unesite broj 'check' marki:")
 
@@ -65,6 +66,7 @@ class unos_zadatka:
                 self.listaprovjeraVar.append(tk.IntVar())
 
                 checkbutton = tk.Checkbutton(self.frame3, font=self.listafontova[i],text=self.listaprovjeraStr[i], variable=self.listaprovjeraVar[i], command=lambda idx=i: self.strikethrough(idx))
+                self.listabotuna.append(checkbutton)
                 checkbutton.pack()       
 
         else:
@@ -97,11 +99,11 @@ class unos_zadatka:
             widget.pack_forget()
         
         self.dodaci.frame2.pack_forget()
-        
-        for widget in self.frame3.winfo_children():
-            widget.pack_forget()
 
-        self.dodaci.frame3.pack_forget()
+        if self.dodaci.Var1.get()==1:
+            for widget in self.frame3.winfo_children():
+                widget.pack_forget()
+            self.frame3.pack_forget()
     
     def __del__(self):
         print("Destruktor se pozvao unos_zad")
@@ -141,15 +143,23 @@ def clear_tasks(event=None):
 def on_double_click(event):
     selected_task_index = tasks_listbox.curselection()[0]
     selected_task = tasks_listbox.get(tasks_listbox.curselection()[0])
+
     for widget in root.winfo_children():
         if widget==menubar:
             root.config(menu="")
             continue
         widget.pack_forget()
+
     for i in listaunosa:
         if i.imezadatka==selected_task:
             i.zadatak.pack(padx=10,pady=10)
             i.dodajzad.pack(pady=5)
+            i.dodaci.frame2.pack()
+            i.dodaci.MenuBttn.pack()
+            if i.dodaci.Var1.get()==1:
+                i.frame3.pack()
+                for j in i.listabotuna:
+                    j.pack()
             return
     messagebox.showinfo("Novi unos", f"Novi unos u: {selected_task}")
     listaunosa.insert(selected_task_index,unos_zadatka(root,selected_task,menubar))
