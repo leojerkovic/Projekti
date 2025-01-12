@@ -54,7 +54,11 @@ class unos_zadatka:
             self.listafontova=[]
             self.listabotuna=[]
 
+            
             self.dodatibr = tk.simpledialog.askinteger(title="Unos", prompt="Unesite broj 'check' marki:")
+            if self.dodatibr==None:
+                self.dodaci.Var1.set(0)
+                return
 
             for i in range(self.dodatibr):
                 self.fontYeah = font.Font(family="Helvetica", size=14)
@@ -67,7 +71,7 @@ class unos_zadatka:
 
                 checkbutton = tk.Checkbutton(self.frame3, font=self.listafontova[i],text=self.listaprovjeraStr[i], variable=self.listaprovjeraVar[i], command=lambda idx=i: self.strikethrough(idx))
                 self.listabotuna.append(checkbutton)
-                checkbutton.pack()       
+                self.listabotuna[i].pack()       
 
         else:
             for widget in self.frame3.winfo_children():
@@ -95,7 +99,15 @@ class unos_zadatka:
             widget.zadatak.pack_forget()
             widget.dodajzad.pack_forget()
 
-        for widget in self.dodaci.frame2.winfo_children():
+            widget.dodaci.MenuBttn.pack_forget()
+            widget.dodaci.frame2.pack_forget()
+
+            if widget.dodaci.Var1.get()==1:
+                for j in widget.listabotuna:
+                    j.pack_forget()
+                widget.frame3.pack_forget()
+
+        """ for widget in self.dodaci.frame2.winfo_children():
             widget.pack_forget()
         
         self.dodaci.frame2.pack_forget()
@@ -103,7 +115,7 @@ class unos_zadatka:
         if self.dodaci.Var1.get()==1:
             for widget in self.frame3.winfo_children():
                 widget.pack_forget()
-            self.frame3.pack_forget()
+            self.frame3.pack_forget() """
     
     def __del__(self):
         print("Destruktor se pozvao unos_zad")
@@ -124,10 +136,19 @@ def remove_task(event=None):
     try:
         selected_task_index = tasks_listbox.curselection()[0] # Get selected task index
         if 0 <= selected_task_index and selected_task_index < len(listaunosa) and not listaunosa[selected_task_index].sadrzaj.strip():
+
             listaunosa[selected_task_index].zadatak.destroy()
             listaunosa[selected_task_index].dodajzad.destroy()
+            listaunosa[selected_task_index].dodaci.frame2.destroy()
+            listaunosa[selected_task_index].dodaci.MenuBttn.destroy()
+            if listaunosa[selected_task_index].dodaci.Var1.get()==1:
+                for j in listaunosa[selected_task_index].listabotuna:
+                    j.destroy()
+                listaunosa[selected_task_index].frame3.destroy()
             listaunosa.remove(listaunosa[selected_task_index])
+
         tasks_listbox.delete(selected_task_index)  # Remove the task
+
     except IndexError:
         messagebox.showwarning("Greška u odabiru", "Nije odabran ni jedan zadatak.")
 
@@ -137,6 +158,12 @@ def clear_tasks(event=None):
         for i in listaunosa:
             i.zadatak.destroy()
             i.dodajzad.destroy()
+            i.dodaci.frame2.destroy()
+            i.dodaci.MenuBttn.destroy()
+            if i.dodaci.Var1.get()==1:
+                for j in i.listabotuna:
+                    j.destroy()
+                i.frame3.destroy()
         listaunosa.clear()
         tasks_listbox.delete(0, tk.END)  # Remove all tasks
 
@@ -152,10 +179,10 @@ def on_double_click(event):
 
     for i in listaunosa:
         if i.imezadatka==selected_task:
-            i.zadatak.pack(padx=10,pady=10)
-            i.dodajzad.pack(pady=5)
             i.dodaci.frame2.pack()
             i.dodaci.MenuBttn.pack()
+            i.zadatak.pack(padx=10,pady=10)
+            i.dodajzad.pack(pady=5)
             if i.dodaci.Var1.get()==1:
                 i.frame3.pack()
                 for j in i.listabotuna:
