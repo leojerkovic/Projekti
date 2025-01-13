@@ -4,6 +4,7 @@ from tkinter import messagebox
 from tkinter import simpledialog
 from tkinter import font
 from tkinter import filedialog
+import pickle
 
 class odabirdodataka:
     def __init__(self,root,checklista,stvoricanvas):
@@ -323,6 +324,32 @@ def popupdodaj():
     else:
         messagebox.showwarning("Greška u unosu", "Zadatak ne može biti prazan.")
 
+def spremidatoteku():
+    file_path = filedialog.asksaveasfilename(
+        defaultextension=".bin",  # Default file extension
+        filetypes=[("Binarna datoteka", "*.bin"), ("Sve datoteke", "*.*")],  # Allowed file types
+        title="Spremi datoteku"
+    )
+    if file_path:
+        with open(file_path, "wb") as file:
+            for i in listaunosa:
+                pickle.dump(i,file)
+
+def otvoridatoteku():
+    file_path = filedialog.askopenfilename(
+        title="Otvori datoteku",
+        filetypes=[("Binarna datoteka", "*.bin"), ("Sve datoteke", "*.*")],  # Filter file types
+    )
+    if file_path:
+        clear_tasks()
+        with open(file_path, "rb") as file:
+            while True:
+                try:
+                    obj = pickle.load(file)  # Load the next object from the file
+                    listaunosa.append(obj)
+                except EOFError:
+                    break
+
 # Main application window
 root = tk.Tk()
 root.title("Voditelj popisa zadataka")
@@ -370,10 +397,17 @@ clear_button.pack(pady=10)
 listaunosa=[]
 
 menubar = tk.Menu(root)
-filemenu = tk.Menu(menubar, tearoff=0)
-filemenu.add_command(label="Izbriši sve", command=clear_tasks)
-filemenu.add_command(label="Dodaj novi zadatak", command=popupdodaj)
-menubar.add_cascade(label="Zadatci", menu=filemenu)
+
+taskmenu = tk.Menu(menubar, tearoff=0)
+taskmenu.add_command(label="Izbriši sve", command=clear_tasks)
+taskmenu.add_command(label="Dodaj novi zadatak", command=popupdodaj)
+
+filemenu=tk.Menu(menubar,tearoff=0)
+filemenu.add_command(label="Spremi", command = spremidatoteku)
+filemenu.add_command(label="Otvori", command = otvoridatoteku)
+
+menubar.add_cascade(label="Zadatci", menu=taskmenu)
+menubar.add_cascade(label="Datoteka", menu=filemenu)
 root.config(menu=menubar)
 
 # Run the application
