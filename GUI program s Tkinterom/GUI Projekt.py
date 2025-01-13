@@ -54,51 +54,61 @@ class unos_zadatka:
         self.listafontova=[]
         self.listabotuna=[]
 
+        self.checklistaon=0
+
         self.nacrtano=[]
 
-        self.frame3 = tk.Frame(root)
+        
 
 
     def checklista(self):
         if self.dodaci.Var1.get()==1:
             
+            self.frame3 = tk.Frame(root)
             self.frame3.pack()
 
             self.brbotuna=0
             
-            self.dodatibr = tk.simpledialog.askinteger(title="Unos", prompt="Unesite broj 'check' marki:")
-            if self.dodatibr==None or self.dodatibr <= 0:
-                if self.dodatibr != None:
-                    messagebox.showinfo(title='Loš odabir', message="Loš broj ste unijeli.")
-                self.dodaci.Var1.set(0)
-                return
+            if self.checklistaon == 0:
+                self.dodatibr = tk.simpledialog.askinteger(title="Unos", prompt="Unesite broj 'check' marki:")
+                if self.dodatibr==None or self.dodatibr <= 0:
+                    if self.dodatibr != None:
+                        messagebox.showinfo(title='Loš odabir', message="Loš broj ste unijeli.")
+                    self.dodaci.Var1.set(0)
+                    return
 
-            for i in range(self.dodatibr):
-                self.fontYeah = font.Font(family="Helvetica", size=14)
-                self.listafontova.append(self.fontYeah)
+                for i in range(self.dodatibr):
+                    self.fontYeah = font.Font(family="Helvetica", size=14)
+                    self.listafontova.append(self.fontYeah)
 
-                self.dodati = tk.simpledialog.askstring(title="Unos", prompt=f"Unesite tekst za {i+1}. 'kutiju':")
-                self.listaprovjeraStr.append(self.dodati)
+                    self.dodati = tk.simpledialog.askstring(title="Unos", prompt=f"Unesite tekst za {i+1}. 'kutiju':")
+                    self.listaprovjeraStr.append(self.dodati)
 
-                self.listaprovjeraVar.append(tk.IntVar())
+                    self.listaprovjeraVar.append(tk.IntVar())
 
-                checkbutton = tk.Checkbutton(self.frame3, font=self.listafontova[i],text=self.listaprovjeraStr[i], variable=self.listaprovjeraVar[i], command=lambda idx=i: self.strikethrough(idx))
-                self.listabotuna.append(checkbutton)
-                self.brbotuna+=1
-                self.listabotuna[i].pack()       
+                    checkbutton = tk.Checkbutton(self.frame3, font=self.listafontova[i],text=self.listaprovjeraStr[i], variable=self.listaprovjeraVar[i], command=lambda idx=i: self.strikethrough(idx))
+                    self.listabotuna.append(checkbutton)
+                    self.brbotuna+=1
+                    self.listabotuna[i].pack()       
 
         else:
             if messagebox.askyesno("Potvrda", "Jeste li sigurni da želite poništiti check listu?"):
                 for widget in self.frame3.winfo_children():
                     widget.destroy()
                 self.frame3.destroy()
+
+                self.listaprovjeraVar.clear()
+                self.listaprovjeraStr.clear()
+                self.listafontova.clear()
+                self.listabotuna.clear()
+                
                 self.brbotuna=0
             else:
                 self.dodaci.Var1.set(1)
                 return
     
     def strikethrough(self,i):
-        print(i)
+        print(self.listaprovjeraVar[i].get())
         if self.listaprovjeraVar[i].get():
             self.listafontova[i].configure(overstrike=1)  
         else:
@@ -393,7 +403,7 @@ def otvoridatoteku():
         filetypes=[("Binarna datoteka", "*.bin"), ("Sve datoteke", "*.*")],  # Filter file types
     )
     if file_path:
-        #clear_tasks()
+        clear_tasks()
         with open(file_path, "rb") as file:
             while True:
                 try:
@@ -404,16 +414,20 @@ def otvoridatoteku():
 
                     if preneseno["Var1"] == 1:
                         novi.dodaci.Var1.set(1)
+                        novi.checklistaon=1
+                        novi.checklista()
                         novi.brbotuna=preneseno["brbotuna"]
                         for i in range(novi.brbotuna):
                             novi.listaprovjeraVar.append(tk.IntVar())
                             novi.listaprovjeraVar[i].set(preneseno["listaKrizanja"][i])
+                            print(novi.listaprovjeraVar[i].get())
                             novi.listaprovjeraStr.append(preneseno["listaStr"][i])
                             fontYeah = font.Font(family="Helvetica", size=14)
                             fontYeah.configure(overstrike=preneseno["listaKrizanja"][i])
                             novi.listafontova.append(fontYeah)
                             checkbutton = tk.Checkbutton(novi.frame3, font=novi.listafontova[i],text=novi.listaprovjeraStr[i], variable=novi.listaprovjeraVar[i], command=lambda idx=i: novi.strikethrough(idx))
                             novi.listabotuna.append(checkbutton)
+                        novi.checklistaon=0
                     
                     if preneseno["Var2"] == 1:
                         novi.dodaci.Var2.set(1)
