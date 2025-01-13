@@ -56,8 +56,7 @@ class unos_zadatka:
 
         self.frame3 = tk.Frame(root)
 
-        self.canvas = tk.Canvas(root, width=1000, height=500, bg='white')
-        
+
     def checklista(self):
         if self.dodaci.Var1.get()==1:
             
@@ -104,6 +103,7 @@ class unos_zadatka:
     def stvoricanvas(self):
         if self.dodaci.Var2.get()==1:
             
+            self.canvas = tk.Canvas(root, width=1000, height=500, bg='white')
             self.canvas.pack(pady = 10)
 
             self.line_id = None
@@ -350,6 +350,7 @@ def spremidatoteku():
                     "Var2": 0,
 
                     "listaStr": [],
+                    "listaKrizanja": [],
                     "brbotuna": "",
 
                     "slikafile": "",
@@ -365,6 +366,8 @@ def spremidatoteku():
                     prenesi["brbotuna"]=i.brbotuna
                     for j in i.listaprovjeraStr:
                         prenesi["listaStr"].append(j)
+                    for j in i.listaprovjeraVar:
+                        prenesi["listaKrizanja"].append(j.get())
 
                 if i.dodaci.Var2.get()==1:
                     prenesi["Var2"]=1
@@ -400,19 +403,24 @@ def otvoridatoteku():
                             novi.listaprovjeraVar.append(tk.IntVar())
                             novi.listaprovjeraStr.append(preneseno["listaStr"][i])
                             fontYeah = font.Font(family="Helvetica", size=14)
+                            fontYeah.configure(overstrike=preneseno["listaKrizanja"][i])
                             novi.listafontova.append(fontYeah)
                             checkbutton = tk.Checkbutton(novi.frame3, font=novi.listafontova[i],text=novi.listaprovjeraStr[i], variable=novi.listaprovjeraVar[i], command=lambda idx=i: novi.strikethrough(idx))
                             novi.listabotuna.append(checkbutton)
                     
                     if preneseno["Var2"] == 1:
                         novi.dodaci.Var2.set(1)
-                        novi.filename=preneseno["slika"]
+                        novi.stvoricanvas()
+                        novi.filename=preneseno["slikafile"]                       
                         novi.canvas.create_line(preneseno["listatocaka"])
-
-                        self.slika = tk.PhotoImage(file=self.filename)
-                        self.zoom_level = 1
-                        self.slika_id=self.canvas.create_image(100,100,anchor="nw",image=self.slika)
-                             
+                        novi.slika=tk.PhotoImage(file=novi.filename)
+                        novi.zoom_level=preneseno["slikazoomlvl"]
+                        if novi.zoom_level<0:
+                            zoom_slika=novi.slika.subsample(abs(novi.zoom_level),abs(novi.zoom_level))
+                        else:
+                            zoom_slika=novi.slika.zoom(novi.zoom_level-1,novi.zoom_level-1)
+                        novi.slika_id=novi.canvas.create_image(preneseno["slika_x"],preneseno["slika_y"],image=zoom_slika)
+                        novi.slika=zoom_slika
 
                     listaunosa.append(novi)
                     novi.izadi()
