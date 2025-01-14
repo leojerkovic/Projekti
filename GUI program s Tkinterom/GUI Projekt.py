@@ -59,6 +59,7 @@ class unos_zadatka:
         self.checklistaon=0
 
         self.skupina=[]
+        self.opcije=[]
 
         
 
@@ -125,13 +126,26 @@ class unos_zadatka:
 
             self.line_id = None
             self.line_points = []
-            self.line_options = {}
+            self.line_options = {
+                "fill":"black",
+                "width": 2
+            }
             
             self.frame4 = ttk.Frame(root)
             self.frame4.pack()
 
             self.botunMijenjajSliku = ttk.Button(self.frame4, text="Ucitaj/Promijeni sliku", command=self.slike)
-            self.botunMijenjajSliku.pack(side=tk.LEFT)
+            self.botunMijenjajSliku.pack(side=tk.BOTTOM)
+
+            self.blista=["Crna","Crvena","Zelena","Plava"]
+            self.boja = ttk.Combobox(self.frame4, values = self.blista, state="readonly")
+            self.boja.set("Odaberi boju")
+            self.boja.pack(side=tk.RIGHT)
+            self.boja.bind("<<ComboboxSelected>>",self.odabirboje)
+
+            self.skala=ttk.Scale(self.frame4, from_=1, to=5)
+            self.skala.pack(side=tk.RIGHT)
+            self.skala.bind("<ButtonRelease-1>",self.odabirdebljine)
 
             self.botunCrtaj=ttk.Button(self.frame4,text="Crtaj",command=self.odaberi)
             self.botunCrtaj.pack(side=tk.RIGHT)
@@ -156,6 +170,19 @@ class unos_zadatka:
             else:
                 self.dodaci.Var2.set(1)
                 return
+
+    def odabirboje(self,event):
+        if self.boja.get()=="Crna":
+            self.line_options["fill"]="black"
+        elif self.boja.get()=="Crvena":
+            self.line_options["fill"]="red"
+        elif self.boja.get()=="Zelena":
+            self.line_options["fill"]="green"
+        elif self.boja.get()=="Plava":
+            self.line_options["fill"]="blue"
+
+    def odabirdebljine(self,event):
+        self.line_options["width"]=self.skala.get()
 
     def odaberi(self):
         self.canvas.bind('<Button-1>', self.zapocni)
@@ -203,11 +230,16 @@ class unos_zadatka:
         self.line_points.extend((event.x, event.y))
         if self.line_id is not None:
             self.canvas.delete(line_id)
-        line_id = self.canvas.create_line(self.line_points, **self.line_options)
+        line_id = self.canvas.create_line(self.line_points, fill=self.line_options["fill"], width=self.line_options["width"])
 
     def stani(self,event=None):
         global line_id
         self.skupina.append(self.line_points)
+        dodaj={
+            "fill":self.line_options["fill"],
+            "width":self.line_options["width"]
+        }
+        self.opcije.append(dodaj)
         self.line_points=[]
         line_id = None
 
@@ -296,7 +328,7 @@ def remove_task(event=None):
         messagebox.showwarning("Greška u odabiru", "Nije odabran ni jedan zadatak.")
 
 def clear_tasks(event=None):
-    if messagebox.askyesno("Potvrda", "Jeste li sigurni da želite obrisati sve zadatke?"):
+    if messagebox.askyesno("Potvrda", "Obrisati sve zadatke?"):
         for i in listaunosa:
             i.zadatak.destroy()
             i.dodaci.dodajzad.destroy()
@@ -382,7 +414,8 @@ def spremidatoteku(event=None):
                     "slika_x": 0,
                     "slika_y": 0,
 
-                    "listatocaka": []
+                    "listatocaka": [],
+                    "opcije": []
                 }
 
                 if i.dodaci.Var1.get()==1:
@@ -402,6 +435,7 @@ def spremidatoteku(event=None):
                     prenesi["slika_y"]=koord[1]
                     for j in i.skupina:
                         prenesi["listatocaka"].append(j)
+                    prenesi["opcije"]=i.opcije
 
                 pickle.dump(prenesi,file)
 
@@ -443,11 +477,11 @@ def otvoridatoteku(event=None):
                         novi.stvoricanvas()
                         novi.filename=preneseno["slikafile"]                       
                         if preneseno["listatocaka"]:   
-                            novi.skupina=preneseno["listatocaka"]                         
-                            for i in preneseno["listatocaka"]:
+                            novi.skupina=preneseno["listatocaka"]                    
+                            for temp,i in enumerate(preneseno["listatocaka"]):
                                 if(len(i)==2):
                                     continue
-                                novi.line_id = novi.canvas.create_line(i)
+                                novi.line_id = novi.canvas.create_line(i,fill=preneseno["opcije"][temp]["fill"],width=preneseno["opcije"][temp]["width"])
                                 novi.line_id = None
                                         
                         novi.slika=tk.PhotoImage(file=novi.filename)
