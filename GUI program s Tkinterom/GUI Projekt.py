@@ -56,7 +56,7 @@ class unos_zadatka:
 
         self.checklistaon=0
 
-        self.nacrtano=[]
+        self.skupina=[]
 
         
 
@@ -76,7 +76,7 @@ class unos_zadatka:
                         messagebox.showinfo(title='Loš odabir', message="Loš broj ste unijeli.")
                     self.dodaci.Var1.set(0)
                     return
-
+                self.brbotuna=self.dodatibr
                 for i in range(self.dodatibr):
                     self.fontYeah = font.Font(family="Helvetica", size=14)
                     self.listafontova.append(self.fontYeah)
@@ -88,7 +88,7 @@ class unos_zadatka:
 
                     checkbutton = tk.Checkbutton(self.frame3, font=self.listafontova[i],text=self.listaprovjeraStr[i], variable=self.listaprovjeraVar[i], command=lambda idx=i: self.strikethrough(idx))
                     self.listabotuna.append(checkbutton)
-                    self.brbotuna+=1
+                    
                     self.listabotuna[i].pack()       
 
         else:
@@ -150,6 +150,8 @@ class unos_zadatka:
                 self.botunMijenjajSliku.destroy()
                 self.botunCrtaj.destroy()
                 self.frame4.destroy()
+                self.nacrtano.clear()
+                self.skupina.clear()
             else:
                 self.dodaci.Var2.set(1)
                 return
@@ -194,20 +196,20 @@ class unos_zadatka:
 
     def zapocni(self,event):
         self.line_points.extend((event.x, event.y))
-        self.nacrtano.extend((event.x, event.y))
         
     def crtaj(self,event):
         global line_id
         self.line_points.extend((event.x, event.y))
-        self.nacrtano.extend((event.x, event.y))
         if self.line_id is not None:
             self.canvas.delete(line_id)
         line_id = self.canvas.create_line(self.line_points, **self.line_options)
 
     def stani(self,event=None):
         global line_id
-        self.line_points.clear()
-        line_id = None
+        self.skupina.append(self.line_points)
+        self.line_points=[]
+        line_id = None   
+
 
     def move(self, event):
         self.canvas.coords(self.slika_id, event.x-150, event.y-150)
@@ -392,7 +394,7 @@ def spremidatoteku():
                     koord=i.canvas.coords(i.slika_id)
                     prenesi["slika_x"]=koord[0]
                     prenesi["slika_y"]=koord[1]
-                    for j in i.nacrtano:
+                    for j in i.skupina:
                         prenesi["listatocaka"].append(j)
 
                 pickle.dump(prenesi,file)
@@ -418,23 +420,30 @@ def otvoridatoteku():
                         novi.checklista()
                         novi.brbotuna=preneseno["brbotuna"]
                         for i in range(novi.brbotuna):
-                            novi.listaprovjeraVar.append(tk.IntVar())
-                            novi.listaprovjeraVar[i].set(preneseno["listaKrizanja"][i])
+                            var = tk.IntVar(value=preneseno["listaKrizanja"][i])
+                            novi.listaprovjeraVar.append(var)
                             print(novi.listaprovjeraVar[i].get())
+
                             novi.listaprovjeraStr.append(preneseno["listaStr"][i])
+
                             fontYeah = font.Font(family="Helvetica", size=14)
-                            fontYeah.configure(overstrike=preneseno["listaKrizanja"][i])
+                            fontYeah.configure(overstrike=bool(novi.listaprovjeraVar[i].get()))
                             novi.listafontova.append(fontYeah)
-                            checkbutton = tk.Checkbutton(novi.frame3, font=novi.listafontova[i],text=novi.listaprovjeraStr[i], variable=novi.listaprovjeraVar[i], command=lambda idx=i: novi.strikethrough(idx))
+
+                            checkbutton = tk.Checkbutton(novi.frame3, font=novi.listafontova[i], text=novi.listaprovjeraStr[i], variable=var, command=lambda idx=i: print(f"Calling strikethrough for idx={idx}") or novi.strikethrough(idx))
                             novi.listabotuna.append(checkbutton)
+
                         novi.checklistaon=0
                     
                     if preneseno["Var2"] == 1:
                         novi.dodaci.Var2.set(1)
                         novi.stvoricanvas()
                         novi.filename=preneseno["slikafile"]                       
-                        if preneseno["listatocaka"]:
-                            novi.canvas.create_line(preneseno["listatocaka"])
+                        if preneseno["listatocaka"]:                            
+                            for i in preneseno["listatocaka"]:
+                                novi.line_id = novi.canvas.create_line(i)
+                                novi.line_id = None
+                                        
                         novi.slika=tk.PhotoImage(file=novi.filename)
                         novi.zoom_level=preneseno["slikazoomlvl"]
                         zoom_slika=novi.slika
