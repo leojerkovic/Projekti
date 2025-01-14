@@ -4,15 +4,18 @@ from tkinter import messagebox
 from tkinter import simpledialog
 from tkinter import font
 from tkinter import filedialog
+
 import pickle
 from functools import partial
 
 class odabirdodataka:
-    def __init__(self,root,checklista,stvoricanvas):
-        self.frame2 = tk.Frame(root)
+    def __init__(self,root,checklista,stvoricanvas,izadi):
+        self.frame2 = ttk.Frame(root)
         self.frame2.pack()
         
-        self.MenuBttn = tk.Menubutton(self.frame2, text = "Dodaci", relief = tk.RAISED)
+        self.MenuBttn = ttk.Menubutton(self.frame2, text = "Dodaci")
+        self.dodajzad = ttk.Button(self.frame2, text="Izađi (Esc)", command=izadi)
+        self.dodajzad.pack(side=tk.RIGHT)
         
         self.Var1 = tk.IntVar()
         self.Var2 = tk.IntVar()
@@ -24,7 +27,7 @@ class odabirdodataka:
         
         self.MenuBttn["menu"] = self.Menu1
 
-        self.MenuBttn.pack()
+        self.MenuBttn.pack(side=tk.LEFT)
 
     def __del__(self):
         print("Destruktor se pozvao dodatci")
@@ -34,8 +37,8 @@ class odabirdodataka:
 class unos_zadatka:
     def __init__(self,root,ime,menubar):
 
-        
-        self.dodaci=odabirdodataka(root,self.checklista,self.stvoricanvas)
+        root.bind("<Escape>",self.izadi)
+        self.dodaci=odabirdodataka(root,self.checklista,self.stvoricanvas,self.izadi)
 
         self.menubar=menubar
         self.imezadatka=ime
@@ -48,8 +51,7 @@ class unos_zadatka:
         if not (self.sadrzaj.strip()):
             self.zadatak.insert("1.0",self.sadrzaj)
 
-        self.dodajzad = tk.Button(root, text="Izađi (Ctrl+Enter)", command=self.izadi)
-        self.dodajzad.pack(pady=10)
+        
 
         self.listaprovjeraVar=[]
         self.listaprovjeraStr=[]
@@ -66,7 +68,7 @@ class unos_zadatka:
     def checklista(self):
         if self.dodaci.Var1.get()==1:
             
-            self.frame3 = tk.Frame(root)
+            self.frame3 = ttk.Frame(root)
             self.frame3.pack()
 
             self.brbotuna=0
@@ -88,7 +90,7 @@ class unos_zadatka:
 
                     self.listaprovjeraVar.append(tk.IntVar())
 
-                    checkbutton = tk.Checkbutton(self.frame3, font=self.listafontova[i],text=self.listaprovjeraStr[i], variable=self.listaprovjeraVar[i], command=partial(self.strikethrough,i))
+                    checkbutton = ttk.Checkbutton(self.frame3, font=self.listafontova[i],text=self.listaprovjeraStr[i], variable=self.listaprovjeraVar[i], command=partial(self.strikethrough,i))
                     self.listabotuna.append(checkbutton)
                     
                     self.listabotuna[i].pack()       
@@ -127,13 +129,13 @@ class unos_zadatka:
             self.line_options = {}
             
 
-            self.frame4 = tk.Frame(root)
+            self.frame4 = ttk.Frame(root)
             self.frame4.pack()
 
-            self.botunMijenjajSliku = tk.Button(self.frame4, text="Ucitaj/Promijeni sliku", command=self.slike)
+            self.botunMijenjajSliku = ttk.Button(self.frame4, text="Ucitaj/Promijeni sliku", command=self.slike)
             self.botunMijenjajSliku.pack(side=tk.LEFT)
 
-            self.botunCrtaj=tk.Button(self.frame4,text="Crtaj",command=self.odaberi)
+            self.botunCrtaj=ttk.Button(self.frame4,text="Crtaj",command=self.odaberi)
             self.botunCrtaj.pack(side=tk.RIGHT)
             
             #Default slika
@@ -230,6 +232,7 @@ class unos_zadatka:
     
     def izadi(self,event=None):
         self.sadrzaj=self.zadatak.get('1.0',tk.END)
+        root.bind("<Escape>",zatvori)
 
         for widget in root.winfo_children():
             if widget==self.menubar:
@@ -239,8 +242,8 @@ class unos_zadatka:
 
         for widget in listaunosa:
             widget.zadatak.pack_forget()
-            widget.dodajzad.pack_forget()
 
+            widget.dodaci.dodajzad.pack_forget()
             widget.dodaci.MenuBttn.pack_forget()
             widget.dodaci.frame2.pack_forget()
 
@@ -276,7 +279,7 @@ def remove_task(event=None):
         if 0 <= selected_task_index and selected_task_index < len(listaunosa) and not listaunosa[selected_task_index].sadrzaj.strip():
 
             listaunosa[selected_task_index].zadatak.destroy()
-            listaunosa[selected_task_index].dodajzad.destroy()
+            listaunosa[selected_task_index].dodaci.dodajzad.destroy()
             listaunosa[selected_task_index].dodaci.frame2.destroy()
             listaunosa[selected_task_index].dodaci.MenuBttn.destroy()
             if listaunosa[selected_task_index].dodaci.Var1.get()==1:
@@ -299,7 +302,7 @@ def clear_tasks(event=None):
     if messagebox.askyesno("Potvrda", "Jeste li sigurni da želite obrisati sve zadatke?"):
         for i in listaunosa:
             i.zadatak.destroy()
-            i.dodajzad.destroy()
+            i.dodaci.dodajzad.destroy()
             i.dodaci.frame2.destroy()
             i.dodaci.MenuBttn.destroy()
             if i.dodaci.Var1.get()==1:
@@ -327,9 +330,9 @@ def on_double_click(event):
     for i in listaunosa:
         if i.imezadatka==selected_task:
             i.dodaci.frame2.pack()
-            i.dodaci.MenuBttn.pack()
+            i.dodaci.MenuBttn.pack(side=tk.LEFT)
             i.zadatak.pack(padx=10,pady=10)
-            i.dodajzad.pack(pady=5)
+            i.dodaci.dodajzad.pack(side=tk.RIGHT)
             if i.dodaci.Var1.get()==1:
                 i.frame3.pack()
                 for j in i.listabotuna:
@@ -339,6 +342,7 @@ def on_double_click(event):
                 i.frame4.pack()
                 i.botunMijenjajSliku.pack(side=tk.LEFT)
                 i.botunCrtaj.pack(side=tk.RIGHT)
+            root.bind("<Escape>",i.izadi)
             return
     messagebox.showinfo("Novi unos", f"Novi unos u: {selected_task}")
     listaunosa.insert(selected_task_index,unos_zadatka(root,selected_task,menubar))
@@ -351,12 +355,16 @@ def popupdodaj():
     else:
         messagebox.showwarning("Greška u unosu", "Zadatak ne može biti prazan.")
 
-def spremidatoteku():
-    file_path = filedialog.asksaveasfilename(
-        defaultextension=".bin",
-        filetypes=[("Binarna datoteka", "*.bin"), ("Sve datoteke", "*.*")],
-        title="Spremi datoteku"
-    )
+def spremidatoteku(event=None):
+    if not trenutnifile:
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".bin",
+            filetypes=[("Binarna datoteka", "*.bin"), ("Sve datoteke", "*.*")],
+            title="Spremi datoteku"
+        )
+    else:
+        file_path=trenutnifile[0]
+
     if file_path:
         with open(file_path, "wb") as file:
             for i in listaunosa:
@@ -400,12 +408,14 @@ def spremidatoteku():
 
                 pickle.dump(prenesi,file)
 
-def otvoridatoteku():
+def otvoridatoteku(event=None):
     file_path = filedialog.askopenfilename(
         title="Otvori datoteku",
         filetypes=[("Binarna datoteka", "*.bin"), ("Sve datoteke", "*.*")],
     )
     if file_path:
+        trenutnifile.clear()
+        trenutnifile.append(file_path)
         clear_tasks()
         with open(file_path, "rb") as file:
             while True:
@@ -426,11 +436,12 @@ def otvoridatoteku():
 
                             novi.listaprovjeraStr.append(preneseno["listaStr"][i])
 
-                            fontYeah = font.Font(family="Helvetica", size=14)
+                            fontYeah = font.Font(family="Arial", size=14)
                             fontYeah.configure(overstrike=bool(novi.listaprovjeraVar[i].get()))
                             novi.listafontova.append(fontYeah)
 
-                            checkbutton = tk.Checkbutton(novi.frame3, font=novi.listafontova[i], text=novi.listaprovjeraStr[i], variable=novi.listaprovjeraVar[i], command=partial(novi.strikethrough,i))
+                            checkbutton = ttk.Checkbutton(novi.frame3, text=novi.listaprovjeraStr[i], variable=novi.listaprovjeraVar[i], command=partial(novi.strikethrough,i))
+                            ttk.Style().configure("checkbu")
                             novi.listabotuna.append(checkbutton)
                         novi.checklistaon=0
                     
@@ -438,7 +449,8 @@ def otvoridatoteku():
                         novi.dodaci.Var2.set(1)
                         novi.stvoricanvas()
                         novi.filename=preneseno["slikafile"]                       
-                        if preneseno["listatocaka"]:                            
+                        if preneseno["listatocaka"]:   
+                            novi.skupina=preneseno["listatocaka"]                         
                             for i in preneseno["listatocaka"]:
                                 novi.line_id = novi.canvas.create_line(i)
                                 novi.line_id = None
@@ -459,9 +471,15 @@ def otvoridatoteku():
                 except EOFError:
                     break
 
-def zatvori(event):
-    if messagebox.askyesno(title="Zatvaranje",message="Je li stvarno želite izaći iz programa?"):
+def zatvori(event=None):
+    temp=messagebox.askyesnocancel(title="Zatvaranje",message="Želite li spremiti prije nego što izađete iz programa?")
+    if temp==1:
+        spremidatoteku()
         root.destroy()
+    elif temp==0:
+        root.destroy()
+    else:
+        return
 
 ###################################################################################################
 
@@ -469,20 +487,24 @@ root = tk.Tk()
 root.title("Voditelj popisa zadataka")
 root.geometry("1920x1080")
 root.bind("<Escape>",zatvori)
+root.bind("<Control-s>",spremidatoteku)
+root.bind("<Control-o>",otvoridatoteku)
+root.protocol("WM_DELETE_WINDOW",zatvori)
 
-labela = tk.Label(root, text="Unesite zadatak:", font=("Arial", 16))
+labela = ttk.Label(root, text="Unesite zadatak:", font=("Arial", 16))
 labela.pack(pady=10)
 
+trenutnifile=[]
 
-task_entry = tk.Entry(root, width=40)
+task_entry = ttk.Entry(root, width=40)
 task_entry.pack(pady=5)
 task_entry.bind("<Return>", add_task)
 task_entry.tkraise()
 
-add_button = tk.Button(root, text="Dodaj zadatak (Enter)", command=add_task)
+add_button = ttk.Button(root, text="Dodaj zadatak (Enter)", command=add_task)
 add_button.pack(pady=10)
 
-frame = tk.Frame(root)
+frame = ttk.Frame(root)
 frame.pack(pady=10, padx=10)
 
 tasks_listbox = tk.Listbox(frame, height=30, width=100)
@@ -491,15 +513,15 @@ tasks_listbox.bind("<Double-Button-1>", on_double_click)
 tasks_listbox.bind("<BackSpace>", remove_task)
 tasks_listbox.bind("<Control-BackSpace>", clear_tasks)
 
-scroll_bar = tk.Scrollbar(frame)
+scroll_bar = ttk.Scrollbar(frame)
 scroll_bar.pack(side=tk.RIGHT, fill=tk.Y)
 tasks_listbox.config(yscrollcommand=scroll_bar.set)
 scroll_bar.config(command=tasks_listbox.yview)
 
-remove_button = tk.Button(root, text="Ukloni zadatak (Backspace)", command=remove_task)
+remove_button = ttk.Button(root, text="Ukloni zadatak (Backspace)", command=remove_task)
 remove_button.pack(pady=10)
 
-clear_button = tk.Button(root, text="Ukloni sve zadatke (Ctrl + Backspace)", command=clear_tasks)
+clear_button = ttk.Button(root, text="Ukloni sve zadatke (Ctrl + Backspace)", command=clear_tasks)
 clear_button.pack(pady=10)
 
 listaunosa=[]
@@ -511,8 +533,8 @@ taskmenu.add_command(label="Izbriši sve", command=clear_tasks)
 taskmenu.add_command(label="Dodaj novi zadatak", command=popupdodaj)
 
 filemenu=tk.Menu(menubar,tearoff=0)
-filemenu.add_command(label="Spremi", command = spremidatoteku)
-filemenu.add_command(label="Otvori", command = otvoridatoteku)
+filemenu.add_command(label="Spremi (Ctrl+S)", command = spremidatoteku)
+filemenu.add_command(label="Otvori (Ctrl+O)", command = otvoridatoteku)
 
 menubar.add_cascade(label="Zadatci", menu=taskmenu)
 menubar.add_cascade(label="Datoteka", menu=filemenu)
