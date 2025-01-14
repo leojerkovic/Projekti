@@ -10,6 +10,7 @@ from functools import partial
 
 class odabirdodataka:
     def __init__(self,root,checklista,stvoricanvas,izadi):
+        
         self.frame2 = ttk.Frame(root)
         self.frame2.pack()
         
@@ -51,11 +52,8 @@ class unos_zadatka:
         if not (self.sadrzaj.strip()):
             self.zadatak.insert("1.0",self.sadrzaj)
 
-        
-
         self.listaprovjeraVar=[]
         self.listaprovjeraStr=[]
-        self.listafontova=[]
         self.listabotuna=[]
 
         self.checklistaon=0
@@ -72,7 +70,7 @@ class unos_zadatka:
             self.frame3.pack()
 
             self.brbotuna=0
-            
+
             if self.checklistaon == 0:
                 self.dodatibr = tk.simpledialog.askinteger(title="Unos", prompt="Unesite broj 'check' marki:")
                 if self.dodatibr==None or self.dodatibr <= 0:
@@ -80,20 +78,20 @@ class unos_zadatka:
                         messagebox.showinfo(title='Loš odabir', message="Loš broj ste unijeli.")
                     self.dodaci.Var1.set(0)
                     return
+
                 self.brbotuna=self.dodatibr
                 for i in range(self.dodatibr):
-                    self.fontYeah = font.Font(family="Helvetica", size=14)
-                    self.listafontova.append(self.fontYeah)
 
                     self.dodati = tk.simpledialog.askstring(title="Unos", prompt=f"Unesite tekst za {i+1}. 'kutiju':")
                     self.listaprovjeraStr.append(self.dodati)
 
                     self.listaprovjeraVar.append(tk.IntVar())
 
-                    checkbutton = ttk.Checkbutton(self.frame3, font=self.listafontova[i],text=self.listaprovjeraStr[i], variable=self.listaprovjeraVar[i], command=partial(self.strikethrough,i))
+                    checkbutton = ttk.Checkbutton(self.frame3, text=self.listaprovjeraStr[i], variable=self.listaprovjeraVar[i], command=partial(self.strikethrough,i))
+                    checkbutton.configure(style="O.TCheckbutton")
                     self.listabotuna.append(checkbutton)
                     
-                    self.listabotuna[i].pack()       
+                    self.listabotuna[i].pack()
 
         else:
             if messagebox.askyesno("Potvrda", "Jeste li sigurni da želite poništiti check listu?"):
@@ -112,11 +110,12 @@ class unos_zadatka:
                 return
     
     def strikethrough(self,i):
+
         print(self.listaprovjeraVar[i].get())
         if self.listaprovjeraVar[i].get():
-            self.listafontova[i].configure(overstrike=1)  
+            self.listabotuna[i].config(style="X.TCheckbutton")  
         else:
-            self.listafontova[i].configure(overstrike=0)
+            self.listabotuna[i].config(style="O.TCheckbutton")
 
     def stvoricanvas(self):
         if self.dodaci.Var2.get()==1:
@@ -128,7 +127,6 @@ class unos_zadatka:
             self.line_points = []
             self.line_options = {}
             
-
             self.frame4 = ttk.Frame(root)
             self.frame4.pack()
 
@@ -154,7 +152,6 @@ class unos_zadatka:
                 self.botunMijenjajSliku.destroy()
                 self.botunCrtaj.destroy()
                 self.frame4.destroy()
-                self.nacrtano.clear()
                 self.skupina.clear()
             else:
                 self.dodaci.Var2.set(1)
@@ -212,7 +209,7 @@ class unos_zadatka:
         global line_id
         self.skupina.append(self.line_points)
         self.line_points=[]
-        line_id = None   
+        line_id = None
 
 
     def move(self, event):
@@ -432,16 +429,12 @@ def otvoridatoteku(event=None):
                         novi.brbotuna=preneseno["brbotuna"]
                         for i in range(novi.brbotuna):
                             novi.listaprovjeraVar.append(tk.IntVar(value=preneseno["listaKrizanja"][i]))
-                            print(novi.listaprovjeraVar[i].get())
-
                             novi.listaprovjeraStr.append(preneseno["listaStr"][i])
-
-                            fontYeah = font.Font(family="Arial", size=14)
-                            fontYeah.configure(overstrike=bool(novi.listaprovjeraVar[i].get()))
-                            novi.listafontova.append(fontYeah)
-
                             checkbutton = ttk.Checkbutton(novi.frame3, text=novi.listaprovjeraStr[i], variable=novi.listaprovjeraVar[i], command=partial(novi.strikethrough,i))
-                            ttk.Style().configure("checkbu")
+                            if novi.listaprovjeraVar[i].get()==1:
+                                checkbutton.configure(style="X.TCheckbutton")
+                            else:
+                                checkbutton.configure(style="O.TCheckbutton")
                             novi.listabotuna.append(checkbutton)
                         novi.checklistaon=0
                     
@@ -452,6 +445,8 @@ def otvoridatoteku(event=None):
                         if preneseno["listatocaka"]:   
                             novi.skupina=preneseno["listatocaka"]                         
                             for i in preneseno["listatocaka"]:
+                                if(len(i)==2):
+                                    continue
                                 novi.line_id = novi.canvas.create_line(i)
                                 novi.line_id = None
                                         
@@ -490,6 +485,12 @@ root.bind("<Escape>",zatvori)
 root.bind("<Control-s>",spremidatoteku)
 root.bind("<Control-o>",otvoridatoteku)
 root.protocol("WM_DELETE_WINDOW",zatvori)
+
+style=ttk.Style()
+fontYeah = font.Font(family="Arial", size=16, overstrike=True)
+fontNo = font.Font(family="Arial", size=16, overstrike=False)
+style.configure("X.TCheckbutton", font=fontYeah)
+style.configure("O.TCheckbutton", font=fontNo)
 
 labela = ttk.Label(root, text="Unesite zadatak:", font=("Arial", 16))
 labela.pack(pady=10)
