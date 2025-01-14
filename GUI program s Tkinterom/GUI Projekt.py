@@ -29,6 +29,7 @@ class odabirdodataka:
     def __del__(self):
         print("Destruktor se pozvao dodatci")
 
+#################################################################################################################
 
 class unos_zadatka:
     def __init__(self,root,ime,menubar):
@@ -164,7 +165,7 @@ class unos_zadatka:
 
     def imagezoom(self,event):
 
-        if event.delta > 0 and self.zoom_level<=3:  # Zoom in
+        if event.delta > 0 and self.zoom_level<=3:
 
             if self.zoom_level == -2:
                 self.zoom_level=2
@@ -176,7 +177,7 @@ class unos_zadatka:
 
             self.slika = zoomed_image
             
-        elif event.delta < 0 and self.zoom_level>=-3:  # Zoom out
+        elif event.delta < 0 and self.zoom_level>=-3:
 
             if self.zoom_level == 2 or self.zoom_level == 1:
                 self.zoom_level=-2
@@ -257,21 +258,21 @@ class unos_zadatka:
     def __del__(self):
         print("Destruktor se pozvao unos_zad")
         
+#########################################################################################################
 
 
-# Function to add a task to the list
 def add_task(event = None):
     task = task_entry.get().strip()
-    if task:  # Add task only if it's non-empty
+    if task:
         tasks_listbox.insert(tk.END, task)
-        task_entry.delete(0, tk.END)  # Clear the input field
+        task_entry.delete(0, tk.END)
     else:
         messagebox.showwarning("Greška u unosu", "Zadatak ne može biti prazan.")
 
-# Function to remove the selected task
+
 def remove_task(event=None):
     try:
-        selected_task_index = tasks_listbox.curselection()[0] # Get selected task index
+        selected_task_index = tasks_listbox.curselection()[0]
         if 0 <= selected_task_index and selected_task_index < len(listaunosa) and not listaunosa[selected_task_index].sadrzaj.strip():
 
             listaunosa[selected_task_index].zadatak.destroy()
@@ -289,12 +290,11 @@ def remove_task(event=None):
                 listaunosa[selected_task_index].frame4.destroy()
             listaunosa.remove(listaunosa[selected_task_index])
 
-        tasks_listbox.delete(selected_task_index)  # Remove the task
+        tasks_listbox.delete(selected_task_index)
 
     except IndexError:
         messagebox.showwarning("Greška u odabiru", "Nije odabran ni jedan zadatak.")
 
-# Function to clear all tasks
 def clear_tasks(event=None):
     if messagebox.askyesno("Potvrda", "Jeste li sigurni da želite obrisati sve zadatke?"):
         for i in listaunosa:
@@ -312,7 +312,7 @@ def clear_tasks(event=None):
                 i.botunCrtaj.destroy()
                 i.frame4.destroy()
         listaunosa.clear()
-        tasks_listbox.delete(0, tk.END)  # Remove all tasks
+        tasks_listbox.delete(0, tk.END)
 
 def on_double_click(event):
     selected_task_index = tasks_listbox.curselection()[0]
@@ -345,16 +345,16 @@ def on_double_click(event):
 
 def popupdodaj():
     dodati = tk.simpledialog.askstring(title="Unos", prompt="Dodajte zadatak:")
-    if dodati:  # Add task only if it's non-empty
+    if dodati:
         tasks_listbox.insert(tk.END, dodati)
-        task_entry.delete(0, tk.END)  # Clear the input field
+        task_entry.delete(0, tk.END)
     else:
         messagebox.showwarning("Greška u unosu", "Zadatak ne može biti prazan.")
 
 def spremidatoteku():
     file_path = filedialog.asksaveasfilename(
-        defaultextension=".bin",  # Default file extension
-        filetypes=[("Binarna datoteka", "*.bin"), ("Sve datoteke", "*.*")],  # Allowed file types
+        defaultextension=".bin",
+        filetypes=[("Binarna datoteka", "*.bin"), ("Sve datoteke", "*.*")],
         title="Spremi datoteku"
     )
     if file_path:
@@ -403,14 +403,14 @@ def spremidatoteku():
 def otvoridatoteku():
     file_path = filedialog.askopenfilename(
         title="Otvori datoteku",
-        filetypes=[("Binarna datoteka", "*.bin"), ("Sve datoteke", "*.*")],  # Filter file types
+        filetypes=[("Binarna datoteka", "*.bin"), ("Sve datoteke", "*.*")],
     )
     if file_path:
         clear_tasks()
         with open(file_path, "rb") as file:
             while True:
                 try:
-                    preneseno = pickle.load(file)  # Load the next object from the file
+                    preneseno = pickle.load(file)
                     tasks_listbox.insert(tk.END,preneseno["listboxime"])
                     novi=unos_zadatka(root,preneseno["listboxime"],menubar)
                     novi.zadatak.insert(tk.END, preneseno["unos"])
@@ -459,26 +459,28 @@ def otvoridatoteku():
                 except EOFError:
                     break
 
-# Main application window
+def zatvori(event):
+    if messagebox.askyesno(title="Zatvaranje",message="Je li stvarno želite izaći iz programa?"):
+        root.destroy()
+
+###################################################################################################
+
 root = tk.Tk()
 root.title("Voditelj popisa zadataka")
-root.geometry("1920x1080")  # Set the window size
+root.geometry("1920x1080")
+root.bind("<Escape>",zatvori)
 
 labela = tk.Label(root, text="Unesite zadatak:", font=("Arial", 16))
 labela.pack(pady=10)
 
-# Input field to add a task
+
 task_entry = tk.Entry(root, width=40)
 task_entry.pack(pady=5)
 task_entry.bind("<Return>", add_task)
 task_entry.tkraise()
 
-
-# Add Task button
 add_button = tk.Button(root, text="Dodaj zadatak (Enter)", command=add_task)
 add_button.pack(pady=10)
-
-# Tasks display area (Listbox)
 
 frame = tk.Frame(root)
 frame.pack(pady=10, padx=10)
@@ -494,12 +496,9 @@ scroll_bar.pack(side=tk.RIGHT, fill=tk.Y)
 tasks_listbox.config(yscrollcommand=scroll_bar.set)
 scroll_bar.config(command=tasks_listbox.yview)
 
-
-# Remove Task button
 remove_button = tk.Button(root, text="Ukloni zadatak (Backspace)", command=remove_task)
 remove_button.pack(pady=10)
 
-# Clear Tasks button
 clear_button = tk.Button(root, text="Ukloni sve zadatke (Ctrl + Backspace)", command=clear_tasks)
 clear_button.pack(pady=10)
 
@@ -519,5 +518,4 @@ menubar.add_cascade(label="Zadatci", menu=taskmenu)
 menubar.add_cascade(label="Datoteka", menu=filemenu)
 root.config(menu=menubar)
 
-# Run the application
 root.mainloop()
