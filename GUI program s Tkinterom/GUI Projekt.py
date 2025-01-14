@@ -5,6 +5,7 @@ from tkinter import simpledialog
 from tkinter import font
 from tkinter import filedialog
 import pickle
+from functools import partial
 
 class odabirdodataka:
     def __init__(self,root,checklista,stvoricanvas):
@@ -86,7 +87,7 @@ class unos_zadatka:
 
                     self.listaprovjeraVar.append(tk.IntVar())
 
-                    checkbutton = tk.Checkbutton(self.frame3, font=self.listafontova[i],text=self.listaprovjeraStr[i], variable=self.listaprovjeraVar[i], command=lambda idx=i: self.strikethrough(idx))
+                    checkbutton = tk.Checkbutton(self.frame3, font=self.listafontova[i],text=self.listaprovjeraStr[i], variable=self.listaprovjeraVar[i], command=partial(self.strikethrough,i))
                     self.listabotuna.append(checkbutton)
                     
                     self.listabotuna[i].pack()       
@@ -420,8 +421,7 @@ def otvoridatoteku():
                         novi.checklista()
                         novi.brbotuna=preneseno["brbotuna"]
                         for i in range(novi.brbotuna):
-                            var = tk.IntVar(value=preneseno["listaKrizanja"][i])
-                            novi.listaprovjeraVar.append(var)
+                            novi.listaprovjeraVar.append(tk.IntVar(value=preneseno["listaKrizanja"][i]))
                             print(novi.listaprovjeraVar[i].get())
 
                             novi.listaprovjeraStr.append(preneseno["listaStr"][i])
@@ -430,9 +430,8 @@ def otvoridatoteku():
                             fontYeah.configure(overstrike=bool(novi.listaprovjeraVar[i].get()))
                             novi.listafontova.append(fontYeah)
 
-                            checkbutton = tk.Checkbutton(novi.frame3, font=novi.listafontova[i], text=novi.listaprovjeraStr[i], variable=var, command=lambda idx=i: print(f"Calling strikethrough for idx={idx}") or novi.strikethrough(idx))
+                            checkbutton = tk.Checkbutton(novi.frame3, font=novi.listafontova[i], text=novi.listaprovjeraStr[i], variable=novi.listaprovjeraVar[i], command=partial(novi.strikethrough,i))
                             novi.listabotuna.append(checkbutton)
-
                         novi.checklistaon=0
                     
                     if preneseno["Var2"] == 1:
