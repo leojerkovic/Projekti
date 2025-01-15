@@ -61,8 +61,6 @@ class unos_zadatka:
         self.skupina=[]
         self.opcije=[]
 
-        
-
 
     def checklista(self):
         if self.dodaci.Var1.get()==1:
@@ -73,7 +71,6 @@ class unos_zadatka:
             self.brbotuna=0
 
             if(self.dodaci.Var2.get()==1):
-                print("yea")
                 self.frame3.pack_forget()
 
                 self.canvas.pack_forget()
@@ -123,8 +120,6 @@ class unos_zadatka:
                 return
     
     def strikethrough(self,i):
-
-        print(self.listaprovjeraVar[i].get())
         if self.listaprovjeraVar[i].get():
             self.listabotuna[i].config(style="X.TCheckbutton")  
         else:
@@ -252,8 +247,6 @@ class unos_zadatka:
 
         else:
             return
-
-        print(self.zoom_level)
 
         
 
@@ -412,7 +405,7 @@ def spremidatoteku(event=None):
         file_path=trenutnifile[0]
 
     if file_path:
-        if (file_path==trenutnifile[0]):
+        if trenutnifile:
             messagebox.showinfo("Uspješno spremanje", "Datoteka je spremljena.")
         with open(file_path, "wb") as file:
             for i in listaunosa:
