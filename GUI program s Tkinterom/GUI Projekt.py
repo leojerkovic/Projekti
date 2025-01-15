@@ -90,19 +90,15 @@ class unos_zadatka:
 
                     checkbutton = ttk.Checkbutton(self.frame3, text=self.listaprovjeraStr[i], variable=self.listaprovjeraVar[i], command=partial(self.strikethrough,i))
                     checkbutton.configure(style="O.TCheckbutton")
-                    self.listabotuna.append(checkbutton)
-                    
+                    self.listabotuna.append(checkbutton)          
                     self.listabotuna[i].pack()
 
         else:
             if messagebox.askyesno("Potvrda", "Jeste li sigurni da želite poništiti check listu?"):
-                for widget in self.frame3.winfo_children():
-                    widget.destroy()
                 self.frame3.destroy()
 
                 self.listaprovjeraVar.clear()
                 self.listaprovjeraStr.clear()
-                self.listafontova.clear()
                 self.listabotuna.clear()
                 
                 self.brbotuna=0
@@ -134,21 +130,33 @@ class unos_zadatka:
             self.frame4 = ttk.Frame(root)
             self.frame4.pack()
 
-            self.botunMijenjajSliku = ttk.Button(self.frame4, text="Ucitaj/Promijeni sliku", command=self.slike)
-            self.botunMijenjajSliku.pack(side=tk.BOTTOM)
+            self.frame5=ttk.Frame(root)
+            self.frame5.pack()
 
+            self.botunOcistiCanvas = ttk.Button(self.frame5, text="Očisti canvas", command=self.ocisti)
+            self.botunOcistiCanvas.pack(side=tk.BOTTOM)
+
+            self.botunMijenjajSliku = ttk.Button(self.frame5, text="Učitaj/Promijeni sliku", command=self.slike)
+            self.botunMijenjajSliku.pack(side=tk.BOTTOM)
+            
             self.blista=["Crna","Crvena","Zelena","Plava"]
-            self.boja = ttk.Combobox(self.frame4, values = self.blista, state="readonly")
+            self.boja = ttk.Combobox(self.frame5, values = self.blista, state="readonly")
             self.boja.set("Odaberi boju")
-            self.boja.pack(side=tk.RIGHT)
+            self.boja.pack(side=tk.RIGHT,padx=25)
             self.boja.bind("<<ComboboxSelected>>",self.odabirboje)
 
-            self.skala=ttk.Scale(self.frame4, from_=1, to=5)
+            self.skala=ttk.Scale(self.frame5, from_=1, to=5)
             self.skala.pack(side=tk.RIGHT)
             self.skala.bind("<ButtonRelease-1>",self.odabirdebljine)
 
-            self.botunCrtaj=ttk.Button(self.frame4,text="Crtaj",command=self.odaberi)
+            self.skalaime=ttk.Label(self.frame5,text="Debljina crte:")
+            self.skalaime.pack(side=tk.RIGHT)
+
+            self.botunCrtaj=ttk.Button(self.frame4,text="Crtaj",command=partial(self.odaberi,1))
             self.botunCrtaj.pack(side=tk.RIGHT)
+
+            self.botunSlika=ttk.Button(self.frame4,text="Pomicanje slike", command=partial(self.odaberi,2))
+            self.botunSlika.pack(side=tk.LEFT)
             
             #Default slika
             self.filename = r"C:\Users\leoje\Desktop\Projekti\GUI program s Tkinterom\def.png" 
@@ -163,13 +171,21 @@ class unos_zadatka:
         else:
             if messagebox.askyesno("Potvrda", "Jeste li sigurni da želite poništiti canvas?"):
                 self.canvas.destroy()
-                self.botunMijenjajSliku.destroy()
-                self.botunCrtaj.destroy()
                 self.frame4.destroy()
+                self.frame5.destroy()
                 self.skupina.clear()
+                self.opcije.clear()
             else:
                 self.dodaci.Var2.set(1)
                 return
+
+    def ocisti(self):
+        if messagebox.askyesno("Potvrda", "Jeste li sigurni da želite očistiti canvas?"):
+            self.canvas.delete("all")
+            self.slika_id=self.canvas.create_image(100,100,anchor="nw",image=None)
+            self.zoom_level=2
+        else:
+            return
 
     def odabirboje(self,event):
         if self.boja.get()=="Crna":
@@ -184,10 +200,13 @@ class unos_zadatka:
     def odabirdebljine(self,event):
         self.line_options["width"]=self.skala.get()
 
-    def odaberi(self):
-        self.canvas.bind('<Button-1>', self.zapocni)
-        self.canvas.bind("<B1-Motion>",self.crtaj)
-        self.canvas.bind('<ButtonRelease-1>', self.stani)
+    def odaberi(self,br):
+        if br==1:
+            self.canvas.bind('<Button-1>', self.zapocni)
+            self.canvas.bind("<B1-Motion>",self.crtaj)
+            self.canvas.bind('<ButtonRelease-1>', self.stani)
+        else:
+            self.canvas.bind("<B1-Motion>",self.move)
 
     def imagezoom(self,event):
 
@@ -270,22 +289,17 @@ class unos_zadatka:
             widget.pack(pady=10)
 
         for widget in listaunosa:
-            widget.zadatak.pack_forget()
 
-            widget.dodaci.dodajzad.pack_forget()
-            widget.dodaci.MenuBttn.pack_forget()
+            widget.zadatak.pack_forget()
             widget.dodaci.frame2.pack_forget()
 
             if widget.dodaci.Var1.get()==1:
-                for j in widget.listabotuna:
-                    j.pack_forget()
                 widget.frame3.pack_forget()
 
             if widget.dodaci.Var2.get()==1:
                 widget.canvas.pack_forget()
-                widget.botunMijenjajSliku.pack_forget()
-                widget.botunCrtaj.pack_forget()
                 widget.frame4.pack_forget()
+                widget.frame5.pack_forget()
     
     def __del__(self):
         print("Destruktor se pozvao unos_zad")
@@ -308,18 +322,13 @@ def remove_task(event=None):
         if 0 <= selected_task_index and selected_task_index < len(listaunosa) and not listaunosa[selected_task_index].sadrzaj.strip():
 
             listaunosa[selected_task_index].zadatak.destroy()
-            listaunosa[selected_task_index].dodaci.dodajzad.destroy()
             listaunosa[selected_task_index].dodaci.frame2.destroy()
-            listaunosa[selected_task_index].dodaci.MenuBttn.destroy()
             if listaunosa[selected_task_index].dodaci.Var1.get()==1:
-                for j in listaunosa[selected_task_index].listabotuna:
-                    j.destroy()
                 listaunosa[selected_task_index].frame3.destroy()
             if listaunosa[selected_task_index].dodaci.Var2.get()==1:
                 listaunosa[selected_task_index].canvas.destroy()
-                listaunosa[selected_task_index].botunMijenjajSliku.destroy()
-                listaunosa[selected_task_index].botunCrtaj.destroy()
                 listaunosa[selected_task_index].frame4.destroy()
+                listaunosa[selected_task_index].frame5.destroy()
             listaunosa.remove(listaunosa[selected_task_index])
 
         tasks_listbox.delete(selected_task_index)
@@ -331,18 +340,13 @@ def clear_tasks(event=None):
     if messagebox.askyesno("Potvrda", "Obrisati sve zadatke?"):
         for i in listaunosa:
             i.zadatak.destroy()
-            i.dodaci.dodajzad.destroy()
             i.dodaci.frame2.destroy()
-            i.dodaci.MenuBttn.destroy()
             if i.dodaci.Var1.get()==1:
-                for j in i.listabotuna:
-                    j.destroy()
                 i.frame3.destroy()
             if i.dodaci.Var2.get()==1:
                 i.canvas.destroy()
-                i.botunMijenjajSliku.destroy()
-                i.botunCrtaj.destroy()
                 i.frame4.destroy()
+                i.frame5.destroy()
         listaunosa.clear()
         tasks_listbox.delete(0, tk.END)
 
@@ -359,18 +363,13 @@ def on_double_click(event):
     for i in listaunosa:
         if i.imezadatka==selected_task:
             i.dodaci.frame2.pack()
-            i.dodaci.MenuBttn.pack(side=tk.LEFT)
             i.zadatak.pack(padx=10,pady=10)
-            i.dodaci.dodajzad.pack(side=tk.RIGHT)
             if i.dodaci.Var1.get()==1:
                 i.frame3.pack()
-                for j in i.listabotuna:
-                    j.pack()
             if i.dodaci.Var2.get()==1:
                 i.canvas.pack(pady = 10)
                 i.frame4.pack()
-                i.botunMijenjajSliku.pack(side=tk.LEFT)
-                i.botunCrtaj.pack(side=tk.RIGHT)
+                i.frame5.pack()
             root.bind("<Escape>",i.izadi)
             return
     messagebox.showinfo("Novi unos", f"Novi unos u: {selected_task}")
@@ -477,7 +476,8 @@ def otvoridatoteku(event=None):
                         novi.stvoricanvas()
                         novi.filename=preneseno["slikafile"]                       
                         if preneseno["listatocaka"]:   
-                            novi.skupina=preneseno["listatocaka"]                    
+                            novi.skupina=preneseno["listatocaka"]
+                            novi.opcije=preneseno["opcije"]
                             for temp,i in enumerate(preneseno["listatocaka"]):
                                 if(len(i)==2):
                                     continue
