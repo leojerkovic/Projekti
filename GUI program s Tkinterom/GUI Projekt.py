@@ -33,16 +33,17 @@ class odabirdodataka:
     def __del__(self):
         print("Destruktor se pozvao dodatci")
 
-#################################################################################################################
+################################################################################################################################
 
 class unos_zadatka:
-    def __init__(self,root,ime,menubar):
+    def __init__(self,root,ime,krit,menubar):
 
         root.bind("<Escape>",self.izadi)
         self.dodaci=odabirdodataka(root,self.checklista,self.stvoricanvas,self.izadi)
 
         self.menubar=menubar
         self.imezadatka=ime
+        self.kriticnost=krit
         self.sadrzaj=""
 
         self.zadatak=tk.Text(root,height=10,font=('Arial',16))
@@ -60,7 +61,6 @@ class unos_zadatka:
 
         self.skupina=[]
         self.opcije=[]
-
 
     def checklista(self):
         if self.dodaci.Var1.get()==1:
@@ -178,7 +178,6 @@ class unos_zadatka:
             self.canvas.bind("<MouseWheel>",self.imagezoom)
             self.canvas.bind("<B1-Motion>",self.move)
 
-
         else:
             if messagebox.askyesno("Potvrda", "Jeste li sigurni da želite poništiti canvas?"):
                 self.canvas.destroy()
@@ -254,14 +253,13 @@ class unos_zadatka:
         self.line_points.extend((event.x, event.y))
         
     def crtaj(self,event):
-        global line_id
         self.line_points.extend((event.x, event.y))
         if self.line_id is not None:
-            self.canvas.delete(line_id)
-        line_id = self.canvas.create_line(self.line_points, fill=self.line_options["fill"], width=self.line_options["width"])
+            self.canvas.delete(self.line_id)
+        self.line_id = self.canvas.create_line(self.line_points, fill=self.line_options["fill"], width=self.line_options["width"])
 
     def stani(self,event=None):
-        global line_id
+        
         self.skupina.append(self.line_points)
         dodaj={
             "fill":self.line_options["fill"],
@@ -269,8 +267,7 @@ class unos_zadatka:
         }
         self.opcije.append(dodaj)
         self.line_points=[]
-        line_id = None
-
+        self.line_id=None
 
     def move(self, event):
         self.canvas.coords(self.slika_id, event.x-150, event.y-150)
@@ -313,21 +310,29 @@ class unos_zadatka:
     def __del__(self):
         print("Destruktor se pozvao unos_zad")
         
-#########################################################################################################
+################################################################################################################################
 
+def tagret(boja):
+    if boja=="VISOKA":
+        return "red"
+    elif boja=="NISKA":
+        return "green"
+    else:
+        return ""
 
 def add_task(event = None):
     task = task_entry.get().strip()
     if task:
-        tasks_listbox.insert(tk.END, task)
+        lista_zadataka.insert('', tk.END, values=(task, trenutnavr[0]),tags=tagret(trenutnavr[0]))
         task_entry.delete(0, tk.END)
     else:
         messagebox.showwarning("Greška u unosu", "Zadatak ne može biti prazan.")
 
-
 def remove_task(event=None):
     try:
-        selected_task_index = tasks_listbox.curselection()[0]
+        selected_task_index = lista_zadataka.index(lista_zadataka.selection())
+        selected_task=lista_zadataka.focus()
+
         if 0 <= selected_task_index and selected_task_index < len(listaunosa) and not listaunosa[selected_task_index].sadrzaj.strip():
 
             listaunosa[selected_task_index].zadatak.destroy()
@@ -340,7 +345,7 @@ def remove_task(event=None):
                 listaunosa[selected_task_index].frame5.destroy()
             listaunosa.remove(listaunosa[selected_task_index])
 
-        tasks_listbox.delete(selected_task_index)
+        lista_zadataka.delete(selected_task)
 
     except IndexError:
         messagebox.showwarning("Greška u odabiru", "Nije odabran ni jedan zadatak.")
@@ -357,11 +362,16 @@ def clear_tasks(event=None):
                 i.frame4.destroy()
                 i.frame5.destroy()
         listaunosa.clear()
-        tasks_listbox.delete(0, tk.END)
+        for zadatak in lista_zadataka.get_children():
+            lista_zadataka.delete(zadatak)
 
 def on_double_click(event):
-    selected_task_index = tasks_listbox.curselection()[0]
-    selected_task = tasks_listbox.get(tasks_listbox.curselection()[0])
+    if not lista_zadataka.selection():
+        messagebox.showwarning("Greška u odabiru", "Nije odabran ni jedan zadatak.")
+        return
+        
+    selected_task_index = lista_zadataka.index(lista_zadataka.selection())
+    selected_task = lista_zadataka.focus()
 
     for widget in root.winfo_children():
         if widget==menubar:
@@ -370,7 +380,7 @@ def on_double_click(event):
         widget.pack_forget()
 
     for i in listaunosa:
-        if i.imezadatka==selected_task:
+        if i.imezadatka==lista_zadataka.item(selected_task)["values"][0]:
             i.dodaci.frame2.pack()
             i.zadatak.pack(padx=10,pady=10)
             if i.dodaci.Var1.get()==1:
@@ -383,13 +393,14 @@ def on_double_click(event):
                 i.frame5.pack()
             root.bind("<Escape>",i.izadi)
             return
-    messagebox.showinfo("Novi unos", f"Novi unos u: {selected_task}")
-    listaunosa.insert(selected_task_index,unos_zadatka(root,selected_task,menubar))
+
+    messagebox.showinfo("Novi unos", f"Novi unos u: {lista_zadataka.item(selected_task)["values"][0]}")
+    listaunosa.insert(selected_task_index,unos_zadatka(root,lista_zadataka.item(selected_task)["values"][0],lista_zadataka.item(selected_task)["values"][1],menubar))
 
 def popupdodaj():
     dodati = tk.simpledialog.askstring(title="Unos", prompt="Dodajte zadatak:")
     if dodati:
-        tasks_listbox.insert(tk.END, dodati)
+        lista_zadataka.insert('', tk.END, values=(dodati, trenutnavr[0]), tags=tagret(trenutnavr[0]))
         task_entry.delete(0, tk.END)
     else:
         messagebox.showwarning("Greška u unosu", "Zadatak ne može biti prazan.")
@@ -410,7 +421,8 @@ def spremidatoteku(event=None):
         with open(file_path, "wb") as file:
             for i in listaunosa:
                 prenesi={
-                    "listboxime": i.imezadatka,
+                    "treeime": i.imezadatka,
+                    "treekrit": i.kriticnost,
 
                     "unos": i.sadrzaj,
 
@@ -464,8 +476,8 @@ def otvoridatoteku(event=None):
             while True:
                 try:
                     preneseno = pickle.load(file)
-                    tasks_listbox.insert(tk.END,preneseno["listboxime"])
-                    novi=unos_zadatka(root,preneseno["listboxime"],menubar)
+                    lista_zadataka.insert('', tk.END, values=(preneseno["treeime"], preneseno["treekrit"]),tags=tagret(preneseno["treekrit"]))
+                    novi=unos_zadatka(root,preneseno["treeime"],preneseno["treekrit"],menubar)
                     novi.zadatak.insert(tk.END, preneseno["unos"])
 
                     if preneseno["Var1"] == 1:
@@ -523,7 +535,11 @@ def zatvori(event=None):
     else:
         return
 
-###################################################################################################
+def vraticombo(event):
+    trenutnavr.clear()
+    trenutnavr.append(zadatakvaznost.get())
+
+####################################################################################################################################
 
 root = tk.Tk()
 root.title("Voditelj popisa zadataka")
@@ -539,15 +555,25 @@ fontNo = font.Font(family="Arial", size=16, overstrike=False)
 style.configure("X.TCheckbutton", font=fontYeah)
 style.configure("O.TCheckbutton", font=fontNo)
 
-labela = ttk.Label(root, text="Unesite zadatak:", font=("Arial", 16))
-labela.pack(pady=10)
-
 trenutnifile=[]
 
-task_entry = ttk.Entry(root, width=40)
-task_entry.pack(pady=5)
+labela = ttk.Label(root, text="Unesite zadatak:", font=("Arial", 20, "bold"), foreground="#333333")
+labela.pack(pady=20)
+
+framemain=ttk.Frame(root)
+framemain.pack(pady=5)
+
+task_entry = ttk.Entry(framemain, width=40)
+task_entry.pack(side=tk.LEFT)
 task_entry.bind("<Return>", add_task)
-task_entry.tkraise()
+
+trenutnavr=["SREDNJA"]
+
+vaznosti=["NISKA","SREDNJA","VISOKA"]
+zadatakvaznost=ttk.Combobox(framemain,values=vaznosti,state="readonly")
+zadatakvaznost.set("Odaberite važnost")
+zadatakvaznost.pack(side=tk.RIGHT,padx=5)
+zadatakvaznost.bind("<<ComboboxSelected>>",vraticombo)
 
 add_button = ttk.Button(root, text="Dodaj zadatak (Enter)", command=add_task)
 add_button.pack(pady=10)
@@ -555,16 +581,21 @@ add_button.pack(pady=10)
 frame = ttk.Frame(root)
 frame.pack(pady=10, padx=10)
 
-tasks_listbox = tk.Listbox(frame, height=30, width=100)
-tasks_listbox.pack(side=tk.LEFT, fill=tk.BOTH)
-tasks_listbox.bind("<Double-Button-1>", on_double_click)
-tasks_listbox.bind("<BackSpace>", remove_task)
-tasks_listbox.bind("<Control-BackSpace>", clear_tasks)
+redci=["Ime_zad","Prior"]
+lista_zadataka=ttk.Treeview(frame,columns=redci,show="headings")
+lista_zadataka.heading("Ime_zad",text="Ime zadatka")
+lista_zadataka.heading("Prior",text="Prioritet")
+lista_zadataka.pack(side=tk.LEFT)
+lista_zadataka.bind("<Double-Button-1>", on_double_click)
+lista_zadataka.bind("<BackSpace>", remove_task)
+lista_zadataka.bind("<Control-BackSpace>", clear_tasks)
+lista_zadataka.tag_configure("red", foreground="red")
+lista_zadataka.tag_configure("green", foreground="green")
 
 scroll_bar = ttk.Scrollbar(frame)
 scroll_bar.pack(side=tk.RIGHT, fill=tk.Y)
-tasks_listbox.config(yscrollcommand=scroll_bar.set)
-scroll_bar.config(command=tasks_listbox.yview)
+lista_zadataka.config(yscrollcommand=scroll_bar.set)
+scroll_bar.config(command=lista_zadataka.yview)
 
 remove_button = ttk.Button(root, text="Ukloni zadatak (Backspace)", command=remove_task)
 remove_button.pack(pady=10)
