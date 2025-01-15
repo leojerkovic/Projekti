@@ -366,6 +366,8 @@ def on_double_click(event):
             i.zadatak.pack(padx=10,pady=10)
             if i.dodaci.Var1.get()==1:
                 i.frame3.pack()
+                for j in i.listabotuna:
+                    j.pack()
             if i.dodaci.Var2.get()==1:
                 i.canvas.pack(pady = 10)
                 i.frame4.pack()
@@ -394,6 +396,8 @@ def spremidatoteku(event=None):
         file_path=trenutnifile[0]
 
     if file_path:
+        if (file_path==trenutnifile[0]):
+            messagebox.showinfo("Uspješno spremanje", "Datoteka je spremljena.")
         with open(file_path, "wb") as file:
             for i in listaunosa:
                 prenesi={
