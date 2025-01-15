@@ -69,8 +69,22 @@ class unos_zadatka:
             
             self.frame3 = ttk.Frame(root)
             self.frame3.pack()
-
+            
             self.brbotuna=0
+
+            if(self.dodaci.Var2.get()==1):
+                print("yea")
+                self.frame3.pack_forget()
+
+                self.canvas.pack_forget()
+                self.frame4.pack_forget()
+                self.frame5.pack_forget()
+                    
+                self.frame3.pack()
+
+                self.canvas.pack(pady=10)
+                self.frame4.pack()
+                self.frame5.pack()
 
             if self.checklistaon == 0:
                 self.dodatibr = tk.simpledialog.askinteger(title="Unos", prompt="Unesite broj 'check' marki:")
@@ -92,6 +106,8 @@ class unos_zadatka:
                     checkbutton.configure(style="O.TCheckbutton")
                     self.listabotuna.append(checkbutton)          
                     self.listabotuna[i].pack()
+
+                
 
         else:
             if messagebox.askyesno("Potvrda", "Jeste li sigurni da želite poništiti check listu?"):
