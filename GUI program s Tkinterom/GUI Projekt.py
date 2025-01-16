@@ -46,9 +46,17 @@ class unos_zadatka:
         self.kriticnost=krit
         self.sadrzaj=""
 
-        self.zadatak=tk.Text(root,height=10,font=('Arial',16))
-        self.zadatak.pack(padx=10,pady=10)
+        self.textframe=tk.Frame(root)
+        self.textframe.pack()
+
+        self.zadatak=tk.Text(self.textframe,height=10,font=('Arial',16),width=110)
+        self.zadatak.pack(side=tk.LEFT)
         self.zadatak.bind("<Control-Return>",self.izadi)
+
+        self.text_scrb = ttk.Scrollbar(self.textframe)
+        self.text_scrb.pack(side=tk.RIGHT, fill=tk.Y)
+        self.zadatak.config(yscrollcommand=self.text_scrb.set)
+        self.text_scrb.config(command=self.zadatak.yview)
 
         if not (self.sadrzaj.strip()):
             self.zadatak.insert("1.0",self.sadrzaj)
@@ -64,6 +72,8 @@ class unos_zadatka:
 
     def checklista(self):
         if self.dodaci.Var1.get()==1:
+
+            self.zadatak.config(height=5)
             
             self.frame3 = ttk.Frame(root)
             self.frame3.pack()
@@ -88,6 +98,7 @@ class unos_zadatka:
                 if self.dodatibr==None or self.dodatibr <= 0:
                     if self.dodatibr != None:
                         messagebox.showinfo(title='Loš odabir', message="Loš broj ste unijeli.")
+                    self.zadatak.config(height=10)
                     self.dodaci.Var1.set(0)
                     return
 
@@ -114,6 +125,7 @@ class unos_zadatka:
                 self.listaprovjeraStr.clear()
                 self.listabotuna.clear()
                 
+                self.zadatak.config(height=10)
                 self.brbotuna=0
             else:
                 self.dodaci.Var1.set(1)
@@ -128,7 +140,7 @@ class unos_zadatka:
     def stvoricanvas(self):
         if self.dodaci.Var2.get()==1:
             
-            self.canvas = tk.Canvas(root, width=1000, height=500, bg='white')
+            self.canvas = tk.Canvas(root, width=1500, height=300, bg='white')
             self.canvas.pack(pady = 10)
 
             self.line_id = None
@@ -168,6 +180,7 @@ class unos_zadatka:
 
             self.botunSlika=ttk.Button(self.frame4,text="Pomicanje slike", command=partial(self.odaberi,2))
             self.botunSlika.pack(side=tk.LEFT)
+            self.botunSlika.configure(style="Select.TButton")
             
             #Default slika
             self.filename = r"C:\Users\leoje\Desktop\Projekti\GUI program s Tkinterom\def.png" 
@@ -191,6 +204,7 @@ class unos_zadatka:
 
     def ocisti(self):
         if messagebox.askyesno("Potvrda", "Jeste li sigurni da želite očistiti canvas?"):
+            
             self.canvas.delete("all")
             self.slika_id=self.canvas.create_image(100,100,anchor="nw",image=None)
             self.zoom_level=2
@@ -212,10 +226,14 @@ class unos_zadatka:
 
     def odaberi(self,br):
         if br==1:
+            self.botunSlika.configure(style="")
+            self.botunCrtaj.configure(style="Select.TButton")
             self.canvas.bind('<Button-1>', self.zapocni)
             self.canvas.bind("<B1-Motion>",self.crtaj)
             self.canvas.bind('<ButtonRelease-1>', self.stani)
         else:
+            self.botunSlika.configure(style="Select.TButton")
+            self.botunCrtaj.configure(style="")
             self.canvas.bind("<B1-Motion>",self.move)
 
     def imagezoom(self,event):
@@ -296,7 +314,7 @@ class unos_zadatka:
 
         for widget in listaunosa:
 
-            widget.zadatak.pack_forget()
+            widget.textframe.pack_forget()
             widget.dodaci.frame2.pack_forget()
 
             if widget.dodaci.Var1.get()==1:
@@ -335,7 +353,7 @@ def remove_task(event=None):
 
         if 0 <= selected_task_index and selected_task_index < len(listaunosa) and not listaunosa[selected_task_index].sadrzaj.strip():
 
-            listaunosa[selected_task_index].zadatak.destroy()
+            listaunosa[selected_task_index].textframe.destroy()
             listaunosa[selected_task_index].dodaci.frame2.destroy()
             if listaunosa[selected_task_index].dodaci.Var1.get()==1:
                 listaunosa[selected_task_index].frame3.destroy()
@@ -353,7 +371,7 @@ def remove_task(event=None):
 def clear_tasks(event=None):
     if messagebox.askyesno("Potvrda", "Obrisati sve zadatke?"):
         for i in listaunosa:
-            i.zadatak.destroy()
+            i.textframe.destroy()
             i.dodaci.frame2.destroy()
             if i.dodaci.Var1.get()==1:
                 i.frame3.destroy()
@@ -382,7 +400,7 @@ def on_double_click(event):
     for i in listaunosa:
         if i.imezadatka==lista_zadataka.item(selected_task)["values"][0]:
             i.dodaci.frame2.pack()
-            i.zadatak.pack(padx=10,pady=10)
+            i.textframe.pack()
             if i.dodaci.Var1.get()==1:
                 i.frame3.pack()
                 for j in i.listabotuna:
@@ -554,6 +572,7 @@ fontYeah = font.Font(family="Arial", size=16, overstrike=True)
 fontNo = font.Font(family="Arial", size=16, overstrike=False)
 style.configure("X.TCheckbutton", font=fontYeah)
 style.configure("O.TCheckbutton", font=fontNo)
+style.configure("Select.TButton",foreground="#9a53b2")
 
 trenutnifile=[]
 
@@ -582,7 +601,7 @@ frame = ttk.Frame(root)
 frame.pack(pady=10, padx=10)
 
 redci=["Ime_zad","Prior"]
-lista_zadataka=ttk.Treeview(frame,columns=redci,show="headings")
+lista_zadataka=ttk.Treeview(frame,columns=redci,show="headings",height=20)
 lista_zadataka.heading("Ime_zad",text="Ime zadatka")
 lista_zadataka.heading("Prior",text="Prioritet")
 lista_zadataka.pack(side=tk.LEFT)
