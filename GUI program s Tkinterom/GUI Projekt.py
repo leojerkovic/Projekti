@@ -1,9 +1,11 @@
 import tkinter as tk
+
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter import simpledialog
 from tkinter import font
 from tkinter import filedialog
+from tkinter.colorchooser import askcolor
 
 import pickle
 from functools import partial
@@ -162,7 +164,7 @@ class unos_zadatka:
             self.botunMijenjajSliku = ttk.Button(self.frame5, text="Učitaj/Promijeni sliku", command=self.slike)
             self.botunMijenjajSliku.pack(side=tk.BOTTOM)
             
-            self.blista=["Crna","Crvena","Zelena","Plava"]
+            self.blista=["Crna","Crvena","Zelena","Plava","Odaberi sam"]
             self.boja = ttk.Combobox(self.frame5, values = self.blista, state="readonly")
             self.boja.set("Odaberi boju")
             self.boja.pack(side=tk.RIGHT,padx=25)
@@ -220,6 +222,9 @@ class unos_zadatka:
             self.line_options["fill"]="green"
         elif self.boja.get()=="Plava":
             self.line_options["fill"]="blue"
+        elif self.boja.get()=="Odaberi sam":
+            self.line_options["fill"]=askcolor(title="Odabir boje")[1]
+            print(self.line_options["fill"])
 
     def odabirdebljine(self,event):
         self.line_options["width"]=self.skala.get()
