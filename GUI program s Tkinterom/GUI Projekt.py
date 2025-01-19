@@ -224,7 +224,6 @@ class unos_zadatka:
             self.line_options["fill"]="blue"
         elif self.boja.get()=="Odaberi sam":
             self.line_options["fill"]=askcolor(title="Odabir boje")[1]
-            print(self.line_options["fill"])
 
     def odabirdebljine(self,event):
         self.line_options["width"]=self.skala.get()
@@ -347,6 +346,7 @@ def add_task(event = None):
     task = task_entry.get().strip()
     if task:
         lista_zadataka.insert('', tk.END, values=(task, trenutnavr[0]),tags=tagret(trenutnavr[0]))
+        prazan.append(True)
         task_entry.delete(0, tk.END)
     else:
         messagebox.showwarning("Greška u unosu", "Zadatak ne može biti prazan.")
@@ -368,6 +368,8 @@ def remove_task(event=None):
                 listaunosa[selected_task_index].frame5.destroy()
             listaunosa.remove(listaunosa[selected_task_index])
 
+        prazan[selected_task_index]="del"
+        prazan.remove("del")
         lista_zadataka.delete(selected_task)
 
     except IndexError:
@@ -385,6 +387,7 @@ def clear_tasks(event=None):
                 i.frame4.destroy()
                 i.frame5.destroy()
         listaunosa.clear()
+        prazan.clear()
         for zadatak in lista_zadataka.get_children():
             lista_zadataka.delete(zadatak)
 
@@ -419,11 +422,13 @@ def on_double_click(event):
 
     messagebox.showinfo("Novi unos", f"Novi unos u: {lista_zadataka.item(selected_task)["values"][0]}")
     listaunosa.insert(selected_task_index,unos_zadatka(root,lista_zadataka.item(selected_task)["values"][0],lista_zadataka.item(selected_task)["values"][1],menubar))
+    prazan[selected_task_index]=False
 
 def popupdodaj():
     dodati = tk.simpledialog.askstring(title="Unos", prompt="Dodajte zadatak:")
     if dodati:
         lista_zadataka.insert('', tk.END, values=(dodati, trenutnavr[0]), tags=tagret(trenutnavr[0]))
+        prazan.append(True)
         task_entry.delete(0, tk.END)
     else:
         messagebox.showwarning("Greška u unosu", "Zadatak ne može biti prazan.")
@@ -442,8 +447,21 @@ def spremidatoteku(event=None):
         if trenutnifile:
             messagebox.showinfo("Uspješno spremanje", "Datoteka je spremljena.")
         with open(file_path, "wb") as file:
-            for i in listaunosa:
+            flag=0
+            for ind in range(len(prazan)):
+                if prazan[ind]==True:
+                    prenesi={
+                        "prazan": True,
+                        "treeime":lista_zadataka.item(lista_zadataka.get_children()[ind])["values"][0],
+                        "treekrit":lista_zadataka.item(lista_zadataka.get_children()[ind])["values"][1]
+                    }
+                    pickle.dump(prenesi,file)
+                    continue
+                i=listaunosa[flag]
+                flag+=1
                 prenesi={
+                    "prazan": False,
+
                     "treeime": i.imezadatka,
                     "treekrit": i.kriticnost,
 
@@ -486,6 +504,8 @@ def spremidatoteku(event=None):
 
                 pickle.dump(prenesi,file)
 
+            flag=0
+
 def otvoridatoteku(event=None):
     file_path = filedialog.askopenfilename(
         title="Otvori datoteku",
@@ -499,7 +519,12 @@ def otvoridatoteku(event=None):
             while True:
                 try:
                     preneseno = pickle.load(file)
+                    if preneseno["prazan"]==True:
+                        lista_zadataka.insert('', tk.END, values=(preneseno["treeime"], preneseno["treekrit"]),tags=tagret(preneseno["treekrit"]))
+                        prazan.append(True)
+                        continue
                     lista_zadataka.insert('', tk.END, values=(preneseno["treeime"], preneseno["treekrit"]),tags=tagret(preneseno["treekrit"]))
+                    prazan.append(False)
                     novi=unos_zadatka(root,preneseno["treeime"],preneseno["treekrit"],menubar)
                     novi.zadatak.insert(tk.END, preneseno["unos"])
 
@@ -598,6 +623,8 @@ zadatakvaznost=ttk.Combobox(framemain,values=vaznosti,state="readonly")
 zadatakvaznost.set("Odaberite važnost")
 zadatakvaznost.pack(side=tk.RIGHT,padx=5)
 zadatakvaznost.bind("<<ComboboxSelected>>",vraticombo)
+
+prazan=[]
 
 add_button = ttk.Button(root, text="Dodaj zadatak (Enter)", command=add_task)
 add_button.pack(pady=10)
