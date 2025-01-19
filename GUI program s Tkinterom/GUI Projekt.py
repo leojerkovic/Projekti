@@ -317,6 +317,8 @@ class unos_zadatka:
             widget.pack(pady=10)
 
         for widget in listaunosa:
+            if widget==0:
+                continue
 
             widget.textframe.pack_forget()
             widget.dodaci.frame2.pack_forget()
@@ -345,8 +347,13 @@ def tagret(boja):
 def add_task(event = None):
     task = task_entry.get().strip()
     if task:
+        for zad in lista_zadataka.get_children():
+            if lista_zadataka.item(zad)["values"][0]==task:
+                messagebox.showwarning("Greška u odabiru", "Ne možete odabrati iskorišteno ime!")
+                return
         lista_zadataka.insert('', tk.END, values=(task, trenutnavr[0]),tags=tagret(trenutnavr[0]))
         prazan.append(True)
+        listaunosa.append(0)
         task_entry.delete(0, tk.END)
     else:
         messagebox.showwarning("Greška u unosu", "Zadatak ne može biti prazan.")
@@ -356,7 +363,9 @@ def remove_task(event=None):
         selected_task_index = lista_zadataka.index(lista_zadataka.selection())
         selected_task=lista_zadataka.focus()
 
-        if 0 <= selected_task_index and selected_task_index < len(listaunosa) and not listaunosa[selected_task_index].sadrzaj.strip():
+        #if 0 <= selected_task_index and selected_task_index < len(listaunosa) and not listaunosa[selected_task_index].sadrzaj.strip():
+
+        if listaunosa[selected_task_index] != 0:
 
             listaunosa[selected_task_index].textframe.destroy()
             listaunosa[selected_task_index].dodaci.frame2.destroy()
@@ -366,7 +375,8 @@ def remove_task(event=None):
                 listaunosa[selected_task_index].canvas.destroy()
                 listaunosa[selected_task_index].frame4.destroy()
                 listaunosa[selected_task_index].frame5.destroy()
-            listaunosa.remove(listaunosa[selected_task_index])
+
+        listaunosa.remove(listaunosa[selected_task_index])
 
         prazan[selected_task_index]="del"
         prazan.remove("del")
@@ -375,9 +385,11 @@ def remove_task(event=None):
     except IndexError:
         messagebox.showwarning("Greška u odabiru", "Nije odabran ni jedan zadatak.")
 
-def clear_tasks(event=None):
-    if messagebox.askyesno("Potvrda", "Obrisati sve zadatke?"):
+def clear_tasks(event=None,yea=None):
+    if yea==1 or messagebox.askyesno("Potvrda", "Obrisati sve zadatke?"):
         for i in listaunosa:
+            if i==0:
+                continue
             i.textframe.destroy()
             i.dodaci.frame2.destroy()
             if i.dodaci.Var1.get()==1:
@@ -406,6 +418,8 @@ def on_double_click(event):
         widget.pack_forget()
 
     for i in listaunosa:
+        if i==0:
+            continue
         if i.imezadatka==lista_zadataka.item(selected_task)["values"][0]:
             i.dodaci.frame2.pack()
             i.textframe.pack()
@@ -421,15 +435,19 @@ def on_double_click(event):
             return
 
     messagebox.showinfo("Novi unos", f"Novi unos u: {lista_zadataka.item(selected_task)["values"][0]}")
-    listaunosa.insert(selected_task_index,unos_zadatka(root,lista_zadataka.item(selected_task)["values"][0],lista_zadataka.item(selected_task)["values"][1],menubar))
+    listaunosa[selected_task_index]=unos_zadatka(root,lista_zadataka.item(selected_task)["values"][0],lista_zadataka.item(selected_task)["values"][1],menubar)
     prazan[selected_task_index]=False
 
 def popupdodaj():
     dodati = tk.simpledialog.askstring(title="Unos", prompt="Dodajte zadatak:")
     if dodati:
+        for zad in lista_zadataka.get_children():
+            if lista_zadataka.item(zad)["values"][0]==dodati:
+                messagebox.showwarning("Greška u odabiru", "Ne možete odabrati iskorišteno ime!")
+                return
         lista_zadataka.insert('', tk.END, values=(dodati, trenutnavr[0]), tags=tagret(trenutnavr[0]))
+        listaunosa.append(0)
         prazan.append(True)
-        task_entry.delete(0, tk.END)
     else:
         messagebox.showwarning("Greška u unosu", "Zadatak ne može biti prazan.")
 
@@ -447,7 +465,7 @@ def spremidatoteku(event=None):
         if trenutnifile:
             messagebox.showinfo("Uspješno spremanje", "Datoteka je spremljena.")
         with open(file_path, "wb") as file:
-            flag=0
+            
             for ind in range(len(prazan)):
                 if prazan[ind]==True:
                     prenesi={
@@ -457,8 +475,9 @@ def spremidatoteku(event=None):
                     }
                     pickle.dump(prenesi,file)
                     continue
-                i=listaunosa[flag]
-                flag+=1
+
+                i=listaunosa[ind]
+        
                 prenesi={
                     "prazan": False,
 
@@ -504,8 +523,6 @@ def spremidatoteku(event=None):
 
                 pickle.dump(prenesi,file)
 
-            flag=0
-
 def otvoridatoteku(event=None):
     file_path = filedialog.askopenfilename(
         title="Otvori datoteku",
@@ -514,12 +531,13 @@ def otvoridatoteku(event=None):
     if file_path:
         trenutnifile.clear()
         trenutnifile.append(file_path)
-        clear_tasks()
+        clear_tasks(None,1)
         with open(file_path, "rb") as file:
             while True:
                 try:
                     preneseno = pickle.load(file)
                     if preneseno["prazan"]==True:
+                        listaunosa.append(0)
                         lista_zadataka.insert('', tk.END, values=(preneseno["treeime"], preneseno["treekrit"]),tags=tagret(preneseno["treekrit"]))
                         prazan.append(True)
                         continue
